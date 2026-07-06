@@ -1,5 +1,5 @@
 "use client";
-import { Sign_in, Sign_up } from "@/components/auth";
+import { Sign_in } from "@/components/auth";
 
 export default function Sign_in_page() {
   return(
