@@ -1,5 +1,6 @@
 "use client";
 
+import { adminResources, type AdminResourceRecord } from "@/data/admin-resources";
 import { useEffect, useState } from "react";
 
 type Destination = {
@@ -7,6 +8,7 @@ type Destination = {
   location: string;
   description: string;
   image: string;
+  adminRecord?: AdminResourceRecord;
 };
 
 type SelectedDestination = Destination & {
@@ -137,225 +139,47 @@ const galleryItems = [
   "from-[#334155] to-[#9bb7c0]",
 ];
 
-const beachDestinations = [
-  {
-    name: "Bailan Beach",
-    location: "Barangay Bailan",
-    description: "A quiet coastal stop for sea views, local walks, and simple beachside visits.",
-    image: "from-[#2d6573] via-[#d5c47d] to-[#163e2c]",
-  },
-  {
-    name: "Bantigue Beach Area",
-    location: "Barangay Bantigue",
-    description: "A local shoreline area for visitors who want a calm, community-style coastal experience.",
-    image: "from-[#1c4f58] via-[#8fb8a4] to-[#e2c477]",
-  },
-  {
-    name: "Hipona Shoreline",
-    location: "Barangay Hipona",
-    description: "A scenic coastal barangay stop suited for relaxed viewing and route exploration.",
-    image: "from-[#174334] via-[#78a88c] to-[#e8d09c]",
-  },
-  {
-    name: "Linampongan Coast",
-    location: "Barangay Linampongan",
-    description: "A peaceful coastal route with open views and nearby local community access.",
-    image: "from-[#254f65] via-[#c6b476] to-[#234129]",
-  },
-  {
-    name: "San Pedro Beach Area",
-    location: "Barangay San Pedro",
-    description: "A coastal destination for simple day trips, photos, and quiet shoreline moments.",
-    image: "from-[#22586f] via-[#93b7aa] to-[#e7c884]",
-  },
-  {
-    name: "Solo Coastal View",
-    location: "Barangay Solo",
-    description: "A local seaside view stop that works well as part of a Pontevedra coastal itinerary.",
-    image: "from-[#123d35] via-[#7aa480] to-[#d8c083]",
-  },
+const destinationFromAdmin = (
+  record: AdminResourceRecord,
+  image: string,
+): Destination => ({
+  name: record.name,
+  location: record.locations,
+  description: record.about,
+  image,
+  adminRecord: record,
+});
+
+const adminBeachDestinations = [
+  destinationFromAdmin(adminResources.beaches, "from-[#2d6573] via-[#d5c47d] to-[#163e2c]"),
 ];
 
-const barangayDestinations = [
-  "Agbanog",
-  "Agdalipe",
-  "Ameligan",
-  "Bailan",
-  "Banate",
-  "Bantigue",
-  "Binuntucan",
-  "Cabugao",
-  "Gabuc",
-  "Guba",
-  "Hipona",
-  "Intungcan",
-  "Jolongajog",
-  "Lantangan",
-  "Linampongan",
-  "Malag-it",
-  "Manapao",
-  "Ilawod",
-  "Ilaya",
-  "Rizal",
-  "San Pedro",
-  "Solo",
-  "Sublangon",
-  "Tabuc",
-  "Tacas",
-  "Yatingan",
-].map((name, index) => ({
-  name: `Barangay ${name}`,
-  location: "Pontevedra, Capiz",
-  description: "View local community information, nearby destinations, and route options for this barangay.",
-  image: [
-    "from-[#1e4c38] via-[#8fb36d] to-[#d8c371]",
-    "from-[#244f65] via-[#91b6a8] to-[#e4c57d]",
-    "from-[#314832] via-[#9baa75] to-[#d6c08a]",
-  ][index % 3],
-}));
-
-const resortDestinations = [
-  {
-    name: "Coastal Resort Stays",
-    location: "Pontevedra Coast",
-    description: "Relaxing stay options near coastal barangays and scenic shoreline routes.",
-    image: "from-[#174334] via-[#79a96f] to-[#e7d8b0]",
-  },
-  {
-    name: "Family Resort Stops",
-    location: "Pontevedra, Capiz",
-    description: "Visitor-friendly places for families planning short breaks or weekend stays.",
-    image: "from-[#22586f] via-[#8bb9a0] to-[#e4cd96]",
-  },
-  {
-    name: "Nature Stay Areas",
-    location: "Near local routes",
-    description: "Quiet resort-style stops close to nature, local roads, and community destinations.",
-    image: "from-[#24462f] via-[#95b278] to-[#d9c586]",
-  },
-  {
-    name: "Beachside Cottage Areas",
-    location: "Coastal barangays",
-    description: "Simple cottage-style stops for visitors who want a relaxed coastal day trip.",
-    image: "from-[#1d5163] via-[#8db79a] to-[#e5ca8d]",
-  },
-  {
-    name: "Private Gathering Venues",
-    location: "Pontevedra, Capiz",
-    description: "Resort-style venues for small events, family gatherings, and local celebrations.",
-    image: "from-[#31533a] via-[#9db77b] to-[#e0c779]",
-  },
-  {
-    name: "Weekend Rest Houses",
-    location: "Near town routes",
-    description: "Comfortable rest-house options for overnight stays and quiet weekend visits.",
-    image: "from-[#173f36] via-[#76a483] to-[#dbc487]",
-  },
+const adminBarangayDestinations = [
+  destinationFromAdmin(adminResources.barangay, "from-[#1e4c38] via-[#8fb36d] to-[#d8c371]"),
 ];
 
-const cafeDestinations = [
-  {
-    name: "Poblacion Cafe Stops",
-    location: "Ilawod and Ilaya",
-    description: "Convenient cafe and food stops near the town center for visitors starting their route.",
-    image: "from-[#4a2f1d] via-[#b27a3c] to-[#f1dcb8]",
-  },
-  {
-    name: "Roadside Coffee Stops",
-    location: "Pontevedra travel routes",
-    description: "Simple rest points for coffee, snacks, and quick breaks while exploring.",
-    image: "from-[#3c2a1c] via-[#9f7040] to-[#e6c192]",
-  },
-  {
-    name: "Local Food Corners",
-    location: "Barangay areas",
-    description: "Community food and refreshment spots that help visitors experience local flavor.",
-    image: "from-[#58351c] via-[#bb7f42] to-[#edd0a2]",
-  },
-  {
-    name: "Pasalubong Corners",
-    location: "Town center routes",
-    description: "Small food stops for snacks, local products, and take-home treats.",
-    image: "from-[#4c311f] via-[#a96e39] to-[#e9c99b]",
-  },
-  {
-    name: "Student Snack Stops",
-    location: "Near school areas",
-    description: "Affordable refreshment stops for quick bites, drinks, and simple meals.",
-    image: "from-[#5a3b22] via-[#bd8549] to-[#f0d5a9]",
-  },
-  {
-    name: "After-Trip Refreshment Stops",
-    location: "Near travel routes",
-    description: "Good places to pause after visiting beaches, barangays, and heritage stops.",
-    image: "from-[#41291b] via-[#986637] to-[#dfbd8e]",
-  },
+const adminResortDestinations = [
+  destinationFromAdmin(adminResources.resort, "from-[#174334] via-[#79a96f] to-[#e7d8b0]"),
 ];
 
-const heritageDestinations = [
-  {
-    name: "St. John the Baptist Parish Church",
-    location: "Poblacion",
-    description: "A local faith and heritage landmark connected to Pontevedra community life.",
-    image: "from-[#2f342e] via-[#8d9a86] to-[#d5c8a6]",
-  },
-  {
-    name: "Pontevedra Municipal Hall Area",
-    location: "Town Center",
-    description: "A civic heritage stop for visitors learning about local government and town identity.",
-    image: "from-[#3a4038] via-[#97a184] to-[#d9c999]",
-  },
-  {
-    name: "Kasalag Festival Heritage",
-    location: "Pontevedra, Capiz",
-    description: "Cultural celebrations, traditions, and stories that shape Pontevedra tourism.",
-    image: "from-[#354331] via-[#9a8f61] to-[#e2c477]",
-  },
-  {
-    name: "Old Poblacion Streets",
-    location: "Poblacion",
-    description: "Walkable town streets that connect civic, faith, and community landmarks.",
-    image: "from-[#343b32] via-[#879070] to-[#d7c494]",
-  },
-  {
-    name: "Local Festival Routes",
-    location: "Event areas",
-    description: "Community routes used during celebrations, parades, and cultural activities.",
-    image: "from-[#2d3d30] via-[#958c62] to-[#d9bd76]",
-  },
-  {
-    name: "Community Story Stops",
-    location: "Pontevedra barangays",
-    description: "Local places tied to oral history, traditions, and everyday cultural life.",
-    image: "from-[#3b4238] via-[#9ca487] to-[#ddcea2]",
-  },
+const adminCafeDestinations = [
+  destinationFromAdmin(adminResources.cafe, "from-[#4a2f1d] via-[#b27a3c] to-[#f1dcb8]"),
 ];
 
-const touristDestinations = [
-  {
-    name: "Pontevedra Town Plaza",
-    location: "Poblacion",
-    description: "A central stop for events, photos, and easy access to nearby municipal landmarks.",
-    image: "from-[#1f5d76] via-[#92b7b9] to-[#e2c478]",
-  },
-  {
-    name: "Pontevedra River View",
-    location: "Pontevedra River route",
-    description: "A scenic local route for travelers who want water views and quiet community scenery.",
-    image: "from-[#20495e] via-[#7fa5a3] to-[#d7bd78]",
-  },
-  {
-    name: "Coastal Barangay Route",
-    location: "Bailan, Bantigue, Hipona, and nearby areas",
-    description: "A route connecting beach areas, barangay views, and local shoreline stops.",
-    image: "from-[#1b4f5b] via-[#8bb38d] to-[#dfc47a]",
-  },
-  {
-    name: "Town Center Pontevedra",
-    location: "Pontevedra, Capiz",
-    description: "A convenient commercial stop for supplies, food, and quick visitor needs.",
-    image: "from-[#334155] via-[#9bb7c0] to-[#e0c878]",
-  },
+const adminHeritageDestinations = [
+  destinationFromAdmin(adminResources.heritage, "from-[#2f342e] via-[#8d9a86] to-[#d5c8a6]"),
+];
+
+const adminTouristDestinations = [
+  destinationFromAdmin(adminResources.touristspot, "from-[#1f5d76] via-[#92b7b9] to-[#e2c478]"),
+];
+
+const mapOptions = [
+  { label: "Pontevedra, Capiz", location: "Pontevedra, Capiz, Philippines" },
+  ...Object.values(adminResources).map((resource) => ({
+    label: resource.name,
+    location: resource.locations,
+  })),
 ];
 
 const footerLinks = [
@@ -382,13 +206,28 @@ export default function Home() {
   const [now, setNow] = useState<Date | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [selectedDestination, setSelectedDestination] = useState<SelectedDestination | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false);
+  const [selectedMapLocation, setSelectedMapLocation] = useState(mapOptions[0].location);
   const place = places[placeIndex];
   const visiblePlaceCount = 3;
+  const selectedMapOption = mapOptions.find((option) => option.location === selectedMapLocation) ?? mapOptions[0];
+  const selectedMapSource = `https://www.google.com/maps?q=${encodeURIComponent(selectedMapLocation)}&output=embed`;
 
   useEffect(() => {
     setNow(new Date());
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsHeaderCompact(window.scrollY > 60);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const showPlace = (index: number) => {
@@ -410,48 +249,48 @@ export default function Home() {
       eyebrow: "Explore Pontevedra",
       title: "All Beaches",
       text: "View beach and coastal destinations around Pontevedra, with barangay details and quick map access for trip planning.",
-      items: beachDestinations,
+      items: adminBeachDestinations,
     },
     {
       id: "barangay",
       eyebrow: "Local Communities",
       title: "All Barangays",
       text: "Browse Pontevedra barangays and open map searches for local community routes and nearby destinations.",
-      items: barangayDestinations,
+      items: adminBarangayDestinations,
     },
     {
       id: "resorts",
       eyebrow: "Where To Stay",
       title: "All Resorts",
       text: "View resort and stay options for visitors planning overnight trips, family breaks, and coastal routes.",
-      items: resortDestinations,
+      items: adminResortDestinations,
     },
     {
       id: "cafe",
       eyebrow: "Food Stops",
       title: "All Cafes",
       text: "Find cafe and food stop categories for breaks, snacks, and local refreshments during your trip.",
-      items: cafeDestinations,
+      items: adminCafeDestinations,
     },
     {
       id: "heritage",
       eyebrow: "Culture And History",
       title: "All Heritage Sites",
       text: "Explore faith, civic, and cultural heritage stops connected to Pontevedra stories and traditions.",
-      items: heritageDestinations,
+      items: adminHeritageDestinations,
     },
     {
       id: "tourist",
       eyebrow: "Visitor Guide",
       title: "All Tourist Attractions",
       text: "See notable places, routes, and local attractions that visitors can include in a Pontevedra itinerary.",
-      items: touristDestinations,
+      items: adminTouristDestinations,
     },
   ];
 
   return (
     <main className="min-h-screen bg-white text-[#2f2f2f]">
-      <header className="relative z-30 bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="bg-[#0a7137] px-5 text-white lg:px-10 xl:px-20">
           <div className="mx-auto flex min-h-12 max-w-7xl flex-col justify-center gap-2 py-2 text-sm font-bold sm:flex-row sm:items-center sm:justify-between sm:py-0">
             <p className="whitespace-nowrap">Republic of the Philippines</p>
@@ -471,39 +310,75 @@ export default function Home() {
           </div>
         </div>
 
-        <nav className="px-5 lg:px-10 xl:px-20" aria-label="Main navigation">
-          <div className="mx-auto grid max-w-7xl gap-6 py-7 lg:grid-cols-[360px_1fr] lg:items-center xl:grid-cols-[390px_1fr]">
-            <a className="flex items-center gap-5" href="#home" aria-label="Municipality of Pontevedra">
-              <span className="grid size-20 shrink-0 place-items-center rounded-full border-4 border-[#bb3338] bg-white shadow-sm sm:size-24">
-                <span className="grid size-14 place-items-center rounded-full border-2 border-[#0b6d36] text-xs font-black text-[#0b6d36] sm:size-16">
+        <nav className="px-5 transition-all duration-300 lg:px-10 xl:px-20" aria-label="Main navigation">
+          <div className={`mx-auto grid max-w-7xl gap-5 transition-all duration-300 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-center xl:grid-cols-[330px_minmax(0,1fr)] ${
+            isHeaderCompact ? "py-2" : "py-4 lg:py-6"
+          }`}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <a className="flex min-w-0 items-center gap-3 sm:gap-4" href="#home" aria-label="Municipality of Pontevedra">
+              <span className={`grid shrink-0 place-items-center rounded-full border-[3px] border-[#bb3338] bg-white shadow-sm transition-all duration-300 ${
+                isHeaderCompact ? "size-12 sm:size-14" : "size-16 sm:size-20 lg:size-18 xl:size-20"
+              }`}
+              >
+                <span className={`grid place-items-center rounded-full border-2 border-[#0b6d36] font-black text-[#0b6d36] transition-all duration-300 ${
+                  isHeaderCompact ? "size-8 text-[9px] sm:size-9" : "size-11 text-[10px] sm:size-14 lg:size-12 xl:size-14"
+                }`}
+                >
                   SH
                 </span>
               </span>
               <span className="min-w-0">
-                <span className="block text-3xl font-black leading-none tracking-wide text-[#087238] sm:text-4xl">
+                <span className={`block truncate font-black leading-none tracking-wide text-[#087238] transition-all duration-300 ${
+                  isHeaderCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl lg:text-2xl xl:text-3xl"
+                }`}
+                >
                   PONTEVEDRA
                 </span>
-                <span className="mt-2 block text-lg leading-none text-[#5f5f5f] sm:text-xl">
+                <span className={`mt-1 truncate leading-none text-[#5f5f5f] transition-all duration-300 ${
+                  isHeaderCompact ? "hidden sm:block sm:text-xs" : "block text-sm sm:text-base xl:text-lg"
+                }`}
+                >
                   City of Gentle People
                 </span>
               </span>
-            </a>
+              </a>
 
-            <div className="grid gap-5 xl:grid-cols-[1fr_355px] xl:items-center">
-              <ul className="flex flex-wrap items-center gap-x-2 gap-y-2 text-[17px] text-[#242424] sm:gap-x-4 lg:justify-start xl:flex-nowrap xl:gap-x-5 xl:text-[18px]">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen((currentValue) => !currentValue)}
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-[#d8d8d8] text-[#0b6d36] transition hover:bg-[#f1f7f3] lg:hidden"
+                aria-label="Toggle main navigation"
+                aria-expanded={isMobileMenuOpen}
+              >
+                <span className="flex flex-col gap-1.5">
+                  <span className="block h-0.5 w-5 rounded bg-current" />
+                  <span className="block h-0.5 w-5 rounded bg-current" />
+                  <span className="block h-0.5 w-5 rounded bg-current" />
+                </span>
+              </button>
+            </div>
+
+            <div className={`${isMobileMenuOpen ? "grid" : "hidden"} min-w-0 gap-4 lg:grid xl:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] xl:items-center`}>
+              <ul className="flex min-w-0 flex-col gap-2 text-[16px] text-[#242424] lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-2 lg:gap-y-2 lg:justify-start xl:flex-nowrap xl:text-[16px] 2xl:gap-x-4">
                 {menuItems.map((item) => (
                   <li className="group relative" key={item.label}>
                     <a
-                      className="flex h-11 items-center gap-2 rounded-sm px-2 font-medium transition hover:bg-[#f1f7f3] hover:text-[#0b6d36]"
+                      className="flex h-10 items-center justify-between gap-2 rounded-sm px-3 font-medium transition hover:bg-[#f1f7f3] hover:text-[#0b6d36] lg:justify-start lg:px-2"
                       href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span className="whitespace-nowrap">{item.label}</span>
                       <span className="text-[11px] leading-none text-[#0b6d36]">v</span>
                     </a>
-                    <ul className="invisible absolute left-0 top-full z-40 w-56 border-t-4 border-[#0b6d36] bg-white py-2 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100">
+                    <ul className="grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:invisible lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:opacity-0 lg:shadow-xl lg:transition lg:group-hover:visible lg:group-hover:opacity-100">
                       {item.links.map(([label, href]) => (
                         <li key={label}>
-                          <a className="block px-4 py-3 text-sm hover:bg-[#f2f6f3] hover:text-[#0b6d36]" href={href}>
+                          <a
+                            className="block px-4 py-2 text-sm hover:bg-[#f2f6f3] hover:text-[#0b6d36] lg:py-3"
+                            href={href}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
                             {label}
                           </a>
                         </li>
@@ -513,17 +388,17 @@ export default function Home() {
                 ))}
               </ul>
 
-              <form className="flex h-14 w-full border border-[#d8d8d8] bg-white xl:justify-self-end" action="#">
+              <form className="flex h-12 w-full min-w-0 max-w-full border border-[#d8d8d8] bg-white xl:justify-self-end" action="#">
                 <label className="sr-only" htmlFor="search">
                   Search
                 </label>
                 <input
                   id="search"
-                  className="min-w-0 flex-1 px-5 text-lg text-[#222222] outline-none placeholder:text-[#8b8f94]"
+                  className="min-w-0 flex-1 px-3 text-base text-[#222222] outline-none placeholder:text-[#8b8f94] sm:px-4"
                   type="text"
                   placeholder="Search"
                 />
-                <button className="w-[70px] bg-[#0b6d36] text-lg font-black text-white transition hover:bg-[#07552a]" type="submit">
+                <button className="w-14 shrink-0 bg-[#0b6d36] text-sm font-black text-white transition hover:bg-[#07552a] sm:w-16" type="submit">
                   Go
                 </button>
               </form>
@@ -693,10 +568,39 @@ export default function Home() {
 
       <section id="stay" className="bg-[#f7f7f7] px-5 py-20 lg:px-20">
         <div className="mx-auto max-w-7xl">
-          <h2 className="mb-8 text-center text-4xl font-black text-[#0b6d36]">Location Map</h2>
+          <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-[#0b6d36]">Map Access</p>
+              <h2 className="mt-2 text-4xl font-black text-[#0b6d36]">Location Map</h2>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-[#666666]">
+                Choose a resource from the dropdown to view its location on the map.
+              </p>
+            </div>
+
+            <label className="flex w-full flex-col gap-2 text-sm font-black uppercase tracking-wide text-[#123126] md:max-w-sm">
+              Select Location
+              <select
+                value={selectedMapLocation}
+                onChange={(event) => setSelectedMapLocation(event.target.value)}
+                className="h-12 w-full border border-[#d8d8d8] bg-white px-4 text-sm font-bold normal-case tracking-normal text-[#222222] outline-none transition focus:border-[#0b6d36] focus:ring-2 focus:ring-[#d8f3df]"
+              >
+                {mapOptions.map((option) => (
+                  <option value={option.location} key={`${option.label}-${option.location}`}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="mb-4 border-l-8 border-[#0b6d36] bg-white px-5 py-4 shadow-sm">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0b6d36]">{selectedMapOption.label}</p>
+            <p className="mt-1 text-base font-semibold text-[#555555]">{selectedMapOption.location}</p>
+          </div>
+
           <iframe
-            title="Pontevedra Capiz location map"
-            src="https://www.google.com/maps?q=Pontevedra,Capiz,Philippines&output=embed"
+            title={`${selectedMapOption.label} location map`}
+            src={selectedMapSource}
             width="100%"
             height="450"
             className="border-0 shadow-lg"
@@ -781,10 +685,26 @@ export default function Home() {
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">About This Place</h3>
                   <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.description}</p>
-                  <p className="mt-5 text-base leading-7 text-[#666666]">
-                    This listing helps visitors understand the place before going there. Use the map for route planning,
-                    then check local conditions, opening availability, and visitor guidance before your trip.
-                  </p>
+                  {selectedDestination.adminRecord ? (
+                    <div className="mt-6">
+                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Transportations</h3>
+                      <div className="mt-3 grid gap-3">
+                        {selectedDestination.adminRecord.transportations.map((transportation) => (
+                          <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-4" key={`${transportation.type}-${transportation.description}`}>
+                            <span className="inline-flex bg-[#0b6d36] px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
+                              {transportation.type}
+                            </span>
+                            <p className="mt-3 text-sm leading-6 text-[#555555]">{transportation.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-5 text-base leading-7 text-[#666666]">
+                      This listing helps visitors understand the place before going there. Use the map for route planning,
+                      then check local conditions, opening availability, and visitor guidance before your trip.
+                    </p>
+                  )}
                 </div>
 
                 <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-5">
@@ -802,6 +722,39 @@ export default function Home() {
                       <dt className="font-black text-[#0b6d36]">Best For</dt>
                       <dd className="mt-1 text-[#555555]">Trip planning, local exploration, photos, and route checking.</dd>
                     </div>
+                    {selectedDestination.adminRecord ? (
+                      <>
+                        <div>
+                          <dt className="font-black text-[#0b6d36]">Gmail</dt>
+                          <dd className="mt-1 break-words text-[#555555]">
+                            <a className="hover:text-[#0b6d36]" href={`mailto:${selectedDestination.adminRecord.gmail}`}>
+                              {selectedDestination.adminRecord.gmail}
+                            </a>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-black text-[#0b6d36]">Facebook Page</dt>
+                          <dd className="mt-1 break-words text-[#555555]">
+                            <a
+                              className="hover:text-[#0b6d36]"
+                              href={selectedDestination.adminRecord.facebook_page}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              {selectedDestination.adminRecord.facebook_page}
+                            </a>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-black text-[#0b6d36]">Image Source</dt>
+                          <dd className="mt-1 break-words text-[#555555]">{selectedDestination.adminRecord.image_src}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-black text-[#0b6d36]">Iframe Link</dt>
+                          <dd className="mt-1 break-words text-[#555555]">{selectedDestination.adminRecord.iframe_link}</dd>
+                        </div>
+                      </>
+                    ) : null}
                   </dl>
                   <a
                     className="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#0b6d36] px-5 text-sm font-black text-white transition hover:bg-[#07552a]"
