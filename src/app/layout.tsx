@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Smart Heritage",
+  title: "Pontevedra Tourism Portal",
   description:
-    "Accurate geolocation data for heritage tourism, vacation routes, and exact destination discovery.",
+    "A tourism website for Pontevedra that highlights destinations, events, travel details, visitor requests, and admin management.",
 };
 
 export default function RootLayout({

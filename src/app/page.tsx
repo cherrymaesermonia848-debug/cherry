@@ -549,9 +549,23 @@ export default function Home() {
               Explore the beauty of Pontevedra, from pristine beaches to natural
               wonders and rich cultural heritage.
             </p>
-            <a className="mt-10 inline-flex rounded-full bg-[#0b8c47] px-11 py-5 text-xl font-bold hover:bg-[#08733a]" href="#explore">
-              Explore Now
-            </a>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <a className="inline-flex rounded-full bg-[#0b8c47] px-11 py-5 text-xl font-bold hover:bg-[#08733a]" href="#explore">
+                Explore Now
+              </a>
+              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/auth/sign-in">
+                Sign In
+              </a>
+              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/auth/sign-up">
+                Create Account
+              </a>
+              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/admin/login">
+                Admin Login
+              </a>
+            </div>
+            <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-[#f2f8f5]">
+              Visitors can request tourism help, submit a place for review, and explore featured destinations in one place.
+            </p>
           </div>
         </div>
       </section>
