@@ -34,6 +34,7 @@ export default function Sign_in() {
       }
     } else {
       setMessage(response.message);
+      setLoading(false);
     }
     setLoading(false);
   };
