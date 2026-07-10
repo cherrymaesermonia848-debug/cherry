@@ -1,0 +1,16 @@
+{
+  "admin" : {
+    "add_location" : "/services/supabase/admin/add_location",
+    "delete_location" : "/services/supabase/admin/delete_location",
+    "retrieve_location" : "/services/supabase/admin/retrieve_location",
+    "settings" : "/services/supabase/admin/settings"
+  },
+  "auth" : {
+    "signin" : "/services/supabase/auth/signin"
+  },
+  "jwt" : {
+    "auth" : "/services/jwt/auth",
+    "verify" : "/services/jwt/verify",
+    "deauth" : "/services/jwt/deauth"
+  }
+}

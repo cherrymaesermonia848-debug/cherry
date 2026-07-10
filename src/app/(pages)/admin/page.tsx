@@ -1,25 +1,95 @@
+"use client";
 import Link from "next/link";
 import { SideBar } from "@/components/admin";
+import { Fetch_to } from "@/utilities";
+import json_route from "@/config/json_route.json";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const stats = [
-  { label: "Barangay", value: "1", href: "/admin/Barangay", color: "#0f766e" },
-  { label: "Beaches", value: "1", href: "/admin/Beaches", color: "#0284c7" },
-  { label: "Resorts", value: "1", href: "/admin/Resort", color: "#16a34a" },
-  { label: "Tourist Spots", value: "1", href: "/admin/Touristspot", color: "#d97706" },
-  { label: "Cafes", value: "1", href: "/admin/Cafe", color: "#7c3aed" },
-  { label: "Heritage Sites", value: "1", href: "/admin/Heritage", color: "#dc2626" },
+type Stat = { label: string; value: string; href: string; color: string; key: string };
+
+const stats: Stat[] = [
+  { key: "barangay", label: "Barangay", value: "0", href: "/admin/Barangay", color: "#0f766e" },
+  { key: "beaches", label: "Beaches", value: "0", href: "/admin/Beaches", color: "#0284c7" },
+  { key: "resort", label: "Resorts", value: "0", href: "/admin/Resort", color: "#16a34a" },
+  { key: "touristspot", label: "Tourist Spots", value: "0", href: "/admin/Touristspot", color: "#d97706" },
+  { key: "cafe", label: "Cafes", value: "0", href: "/admin/Cafe", color: "#7c3aed" },
+  { key: "heritage", label: "Heritage Sites", value: "0", href: "/admin/Heritage", color: "#dc2626" },
 ];
 
 const quickActions = [
   { label: "Manage Barangay", href: "/admin/Barangay" },
   { label: "Manage Beaches", href: "/admin/Beaches" },
   { label: "Manage Resorts", href: "/admin/Resort" },
+  { label: "Manage Users", href: "/admin/manage_user" },
   { label: "Open Settings", href: "/admin/settings" },
 ];
 
-const totalRecords = stats.reduce((total, stat) => total + Number(stat.value), 0);
+const userBehavior = [
+  { label: "Mon", visits: 24, requests: 4 },
+  { label: "Tue", visits: 38, requests: 7 },
+  { label: "Wed", visits: 29, requests: 5 },
+  { label: "Thu", visits: 46, requests: 9 },
+  { label: "Fri", visits: 58, requests: 12 },
+  { label: "Sat", visits: 41, requests: 8 },
+  { label: "Sun", visits: 34, requests: 6 },
+];
+
+
+const behaviorMetrics = [
+  {
+    label: "Visits",
+    key: "visits",
+    colorClass: "bg-teal-700",
+    textClass: "text-teal-700",
+    description: "Daily visitor sessions across the tourism pages.",
+  },
+  {
+    label: "Location Requests",
+    key: "requests",
+    colorClass: "bg-amber-500",
+    textClass: "text-amber-600",
+    description: "User-submitted requests to add new locations.",
+  },
+] as const;
+
+type RetrieveResponseData = {
+  message?: Record<string, number>;
+};
 
 export default function Dashboard_page() {
+  const router = useRouter();
+  const [location_data, setLocations_data] = useState<Stat[]>(stats);
+
+  useEffect(() => {
+    async function Retrieve() {
+      const response = await Fetch_to(json_route.admin.retrieve_location, { category: "all" });
+
+      if (response.success) {
+        const data = response.data as RetrieveResponseData | null;
+        const counts = data?.message ?? {};
+
+        console.log(counts);
+
+        setLocations_data(
+          stats.map((stat) => ({
+            ...stat,
+            value: String(counts[stat.key] ?? 0),
+          }))
+        );
+      }
+    }
+    Retrieve();
+
+    async function Verify() {
+      const response = await Fetch_to(json_route.jwt.verify);
+      if (!response.success) return router.push("/auth/sign-in");
+    }
+    Verify();
+  }, []);
+
+  const totalRecords = location_data.reduce((total, stat) => total + Number(stat.value), 0);
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950 lg:pl-72">
       <SideBar />
@@ -27,14 +97,14 @@ export default function Dashboard_page() {
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="border-b border-zinc-200 pb-5">
           <p className="text-sm font-medium uppercase tracking-wide text-teal-700">Admin</p>
-          <h1 className="mt-1 text-3xl font-semibold text-zinc-950">Dashboard</h1>
+          <h1 className="mt-1 text-3xl font-semibold text-zinc-950">Analytics</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600">
             Manage local destination records, contact details, transport information, images, and map links from one admin area.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {stats.map((stat) => (
+          {location_data.map((stat) => (
             <Link
               key={stat.href}
               href={stat.href}
@@ -65,7 +135,7 @@ export default function Dashboard_page() {
               </div>
 
               <div className="grid flex-1 gap-3 sm:grid-cols-2">
-                {stats.map((stat) => (
+                {location_data.map((stat) => (
                   <Link
                     key={stat.href}
                     href={stat.href}
@@ -100,6 +170,55 @@ export default function Dashboard_page() {
             </div>
           </section>
         </div>
+
+        <section className="flex flex-col gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-950">User Behavior</h2>
+            <p className="mt-1 text-sm text-zinc-500">Separated weekly analytics for visitor activity.</p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            {behaviorMetrics.map((metric) => {
+              const total = userBehavior.reduce((sum, behavior) => sum + behavior[metric.key], 0);
+              const maxValue = Math.max(...userBehavior.map((behavior) => behavior[metric.key]));
+
+              return (
+                <article key={metric.key} className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+                  <div className="border-b border-zinc-200 pb-4">
+                    <p className="text-sm font-semibold text-zinc-500">{metric.label}</p>
+                    <div className="mt-2 flex items-end justify-between gap-4">
+                      <span className={`text-4xl font-semibold ${metric.textClass}`}>{total}</span>
+                      <span className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">
+                        This week
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-zinc-500">{metric.description}</p>
+                  </div>
+
+                  <div className="mt-5 flex h-48 items-end gap-3 rounded-lg bg-zinc-50 px-3 py-4">
+                    {userBehavior.map((behavior) => {
+                      const value = behavior[metric.key];
+                      const height = `${Math.max(8, (value / maxValue) * 150)}px`;
+
+                      return (
+                        <div key={behavior.label} className="flex flex-1 flex-col items-center gap-2">
+                          <span
+                            className={`w-full max-w-8 rounded-t ${metric.colorClass}`}
+                            style={{ height }}
+                            title={`${value} ${metric.label.toLowerCase()}`}
+                          />
+                          <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                            {behavior.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
       </section>
     </main>
   );

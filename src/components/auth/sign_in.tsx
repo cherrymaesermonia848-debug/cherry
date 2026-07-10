@@ -3,23 +3,39 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { Fetch_to } from "@/utilities";
+import json_route from "@/config/json_route.json";
 
 export default function Sign_in() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async(event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    setLoading(true);
 
     if (!email || !password) {
       setMessage("Please enter your email and password.");
       return;
     }
 
-    setMessage("Welcome back! You can now request tourism help or submit a place for review.");
-    router.push("/");
+    const response = await Fetch_to(json_route.auth.signin, { email: email, password: password });
+
+    if (response.success) {
+      await Fetch_to(json_route.jwt.auth, { email: email });
+      if (email.endsWith("@admin.com")) {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
+    } else {
+      setMessage(response.message);
+    }
+    setLoading(false);
   };
 
   return (
@@ -78,7 +94,7 @@ export default function Sign_in() {
               className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-[#0b6d36] px-7 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#07552a]"
               type="submit"
             >
-              Sign In
+              {loading ? "Signing...." : "Sign In"}
             </button>
 
             {message ? <p className="mt-4 text-sm font-semibold text-[#0b6d36]">{message}</p> : null}

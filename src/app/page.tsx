@@ -1,6 +1,5 @@
 "use client";
 
-import { adminResources, type AdminResourceRecord } from "@/data/admin-resources";
 import { useEffect, useState } from "react";
 
 type Destination = {
@@ -8,7 +7,6 @@ type Destination = {
   location: string;
   description: string;
   image: string;
-  adminRecord?: AdminResourceRecord;
 };
 
 type SelectedDestination = Destination & {
@@ -139,47 +137,15 @@ const galleryItems = [
   "from-[#334155] to-[#9bb7c0]",
 ];
 
-const destinationFromAdmin = (
-  record: AdminResourceRecord,
-  image: string,
-): Destination => ({
-  name: record.name,
-  location: record.locations,
-  description: record.about,
-  image,
-  adminRecord: record,
-});
-
-const adminBeachDestinations = [
-  destinationFromAdmin(adminResources.beaches, "from-[#2d6573] via-[#d5c47d] to-[#163e2c]"),
-];
-
-const adminBarangayDestinations = [
-  destinationFromAdmin(adminResources.barangay, "from-[#1e4c38] via-[#8fb36d] to-[#d8c371]"),
-];
-
-const adminResortDestinations = [
-  destinationFromAdmin(adminResources.resort, "from-[#174334] via-[#79a96f] to-[#e7d8b0]"),
-];
-
-const adminCafeDestinations = [
-  destinationFromAdmin(adminResources.cafe, "from-[#4a2f1d] via-[#b27a3c] to-[#f1dcb8]"),
-];
-
-const adminHeritageDestinations = [
-  destinationFromAdmin(adminResources.heritage, "from-[#2f342e] via-[#8d9a86] to-[#d5c8a6]"),
-];
-
-const adminTouristDestinations = [
-  destinationFromAdmin(adminResources.touristspot, "from-[#1f5d76] via-[#92b7b9] to-[#e2c478]"),
-];
+const beachDestinations: Destination[] = [];
+const barangayDestinations: Destination[] = [];
+const resortDestinations: Destination[] = [];
+const cafeDestinations: Destination[] = [];
+const heritageDestinations: Destination[] = [];
+const touristDestinations: Destination[] = [];
 
 const mapOptions = [
   { label: "Pontevedra, Capiz", location: "Pontevedra, Capiz, Philippines" },
-  ...Object.values(adminResources).map((resource) => ({
-    label: resource.name,
-    location: resource.locations,
-  })),
 ];
 
 const footerLinks = [
@@ -249,42 +215,42 @@ export default function Home() {
       eyebrow: "Explore Pontevedra",
       title: "All Beaches",
       text: "View beach and coastal destinations around Pontevedra, with barangay details and quick map access for trip planning.",
-      items: adminBeachDestinations,
+      items: beachDestinations,
     },
     {
       id: "barangay",
       eyebrow: "Local Communities",
       title: "All Barangays",
       text: "Browse Pontevedra barangays and open map searches for local community routes and nearby destinations.",
-      items: adminBarangayDestinations,
+      items: barangayDestinations,
     },
     {
       id: "resorts",
       eyebrow: "Where To Stay",
       title: "All Resorts",
       text: "View resort and stay options for visitors planning overnight trips, family breaks, and coastal routes.",
-      items: adminResortDestinations,
+      items: resortDestinations,
     },
     {
       id: "cafe",
       eyebrow: "Food Stops",
       title: "All Cafes",
       text: "Find cafe and food stop categories for breaks, snacks, and local refreshments during your trip.",
-      items: adminCafeDestinations,
+      items: cafeDestinations,
     },
     {
       id: "heritage",
       eyebrow: "Culture And History",
       title: "All Heritage Sites",
       text: "Explore faith, civic, and cultural heritage stops connected to Pontevedra stories and traditions.",
-      items: adminHeritageDestinations,
+      items: heritageDestinations,
     },
     {
       id: "tourist",
       eyebrow: "Visitor Guide",
       title: "All Tourist Attractions",
       text: "See notable places, routes, and local attractions that visitors can include in a Pontevedra itinerary.",
-      items: adminTouristDestinations,
+      items: touristDestinations,
     },
   ];
 
@@ -433,9 +399,6 @@ export default function Home() {
               </a>
               <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/auth/sign-up">
                 Create Account
-              </a>
-              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/admin/login">
-                Admin Login
               </a>
             </div>
             <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-[#f2f8f5]">
@@ -685,26 +648,10 @@ export default function Home() {
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">About This Place</h3>
                   <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.description}</p>
-                  {selectedDestination.adminRecord ? (
-                    <div className="mt-6">
-                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Transportations</h3>
-                      <div className="mt-3 grid gap-3">
-                        {selectedDestination.adminRecord.transportations.map((transportation) => (
-                          <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-4" key={`${transportation.type}-${transportation.description}`}>
-                            <span className="inline-flex bg-[#0b6d36] px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
-                              {transportation.type}
-                            </span>
-                            <p className="mt-3 text-sm leading-6 text-[#555555]">{transportation.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="mt-5 text-base leading-7 text-[#666666]">
-                      This listing helps visitors understand the place before going there. Use the map for route planning,
-                      then check local conditions, opening availability, and visitor guidance before your trip.
-                    </p>
-                  )}
+                  <p className="mt-5 text-base leading-7 text-[#666666]">
+                    This listing helps visitors understand the place before going there. Use the map for route planning,
+                    then check local conditions, opening availability, and visitor guidance before your trip.
+                  </p>
                 </div>
 
                 <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-5">
@@ -722,39 +669,6 @@ export default function Home() {
                       <dt className="font-black text-[#0b6d36]">Best For</dt>
                       <dd className="mt-1 text-[#555555]">Trip planning, local exploration, photos, and route checking.</dd>
                     </div>
-                    {selectedDestination.adminRecord ? (
-                      <>
-                        <div>
-                          <dt className="font-black text-[#0b6d36]">Gmail</dt>
-                          <dd className="mt-1 break-words text-[#555555]">
-                            <a className="hover:text-[#0b6d36]" href={`mailto:${selectedDestination.adminRecord.gmail}`}>
-                              {selectedDestination.adminRecord.gmail}
-                            </a>
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="font-black text-[#0b6d36]">Facebook Page</dt>
-                          <dd className="mt-1 break-words text-[#555555]">
-                            <a
-                              className="hover:text-[#0b6d36]"
-                              href={selectedDestination.adminRecord.facebook_page}
-                              rel="noreferrer"
-                              target="_blank"
-                            >
-                              {selectedDestination.adminRecord.facebook_page}
-                            </a>
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="font-black text-[#0b6d36]">Image Source</dt>
-                          <dd className="mt-1 break-words text-[#555555]">{selectedDestination.adminRecord.image_src}</dd>
-                        </div>
-                        <div>
-                          <dt className="font-black text-[#0b6d36]">Iframe Link</dt>
-                          <dd className="mt-1 break-words text-[#555555]">{selectedDestination.adminRecord.iframe_link}</dd>
-                        </div>
-                      </>
-                    ) : null}
                   </dl>
                   <a
                     className="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#0b6d36] px-5 text-sm font-black text-white transition hover:bg-[#07552a]"

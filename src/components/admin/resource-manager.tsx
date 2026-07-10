@@ -1,6 +1,7 @@
 "use client";
-
-import { FormEvent, useMemo, useState } from "react";
+import { Fetch_to } from "@/utilities";
+import json_route from "@/config/json_route.json";
+import { FormEvent, useEffect, useState, useRef } from "react";
 import SideBar from "./sidebar";
 
 type Transportation = {
@@ -14,18 +15,30 @@ type ResourceRecord = {
   locations: string;
   facebook_page: string;
   gmail: string;
-  transportations: Transportation[];
+  transportations: Transportation[] | string | null;
   about: string;
   image_src: string;
   iframe_link: string;
 };
 
-type ResourceForm = Omit<ResourceRecord, "id">;
-
 type ResourceManagerProps = {
   title: string;
   singularName: string;
-  sampleRecord: ResourceRecord;
+};
+
+type RetrieveResponseData = {
+  message?: ResourceRecord[];
+};
+
+type ResourceForm = {
+  name: string;
+  locations: string;
+  facebook_page: string;
+  gmail: string;
+  transportations: Transportation[];
+  about: string;
+  image_src: string;
+  iframe_link: string;
 };
 
 const emptyResourceForm: ResourceForm = {
@@ -39,21 +52,74 @@ const emptyResourceForm: ResourceForm = {
   iframe_link: "",
 };
 
+const parseTransportations = (
+  transportations: ResourceRecord["transportations"],
+): Transportation[] => {
+  if (Array.isArray(transportations)) {
+    return transportations;
+  }
+
+  if (typeof transportations !== "string" || transportations.trim().length === 0) {
+    return [];
+  }
+
+  try {
+    const parsedTransportations = JSON.parse(transportations) as unknown;
+
+    if (!Array.isArray(parsedTransportations)) {
+      return [];
+    }
+
+    return parsedTransportations.filter((transportation): transportation is Transportation => {
+      if (typeof transportation !== "object" || transportation === null) {
+        return false;
+      }
+
+      return "type" in transportation && "description" in transportation;
+    });
+  } catch {
+    return [
+      {
+        type: "Transportation",
+        description: transportations,
+      },
+    ];
+  }
+};
+
 export default function ResourceManager({
   title,
   singularName,
-  sampleRecord,
 }: ResourceManagerProps) {
-  const [records, setRecords] = useState<ResourceRecord[]>([sampleRecord]);
+  const [records, setRecords] = useState<ResourceRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedRecord, setSelectedRecord] = useState<ResourceRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<ResourceRecord | null>(null);
   const [form, setForm] = useState<ResourceForm>(emptyResourceForm);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ResourceRecord | null>(null);
   const [lastDeletedRecord, setLastDeletedRecord] = useState<ResourceRecord | null>(null);
+  const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const nextId = useMemo(() => {
-    return records.length > 0 ? Math.max(...records.map((record) => record.id)) + 1 : 1;
-  }, [records]);
+  const openEditForm = (record: ResourceRecord) => {
+    setForm({
+      name: record.name,
+      locations: record.locations,
+      facebook_page: record.facebook_page,
+      gmail: record.gmail,
+      transportations: parseTransportations(record.transportations).length > 0
+        ? parseTransportations(record.transportations)
+        : [{ type: "", description: "" }],
+      about: record.about,
+      image_src: record.image_src,
+      iframe_link: record.iframe_link,
+    });
+    setEditingRecord(record);
+  };
+
+  const closeEditForm = () => {
+    setEditingRecord(null);
+    setForm(emptyResourceForm);
+  };
 
   const updateField = (field: keyof ResourceForm, value: string) => {
     setForm((currentForm) => ({
@@ -105,35 +171,38 @@ export default function ResourceManager({
     }));
   };
 
-  const handleImageUpload = (file: File | null) => {
-    updateField("image_src", file?.name ?? "");
-  };
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  const openAddForm = () => {
-    setForm(emptyResourceForm);
-    setEditingId(null);
-    setIsFormOpen(true);
-  };
+    if (editingRecord === null) {
+      return;
+    }
 
-  const closeForm = () => {
-    setForm(emptyResourceForm);
-    setEditingId(null);
-    setIsFormOpen(false);
-  };
+    setRecords((currentRecords) =>
+      currentRecords.map((record) => {
+        if (record.id !== editingRecord.id) {
+          return record;
+        }
 
-  const editRecord = (record: ResourceRecord) => {
-    setForm({
-      name: record.name,
-      locations: record.locations,
-      facebook_page: record.facebook_page,
-      gmail: record.gmail,
-      transportations: record.transportations,
-      about: record.about,
-      image_src: record.image_src,
-      iframe_link: record.iframe_link,
+        return {
+          ...record,
+          ...form,
+        };
+      }),
+    );
+
+    setSelectedRecord((currentRecord) => {
+      if (currentRecord?.id !== editingRecord.id) {
+        return currentRecord;
+      }
+
+      return {
+        ...currentRecord,
+        ...form,
+      };
     });
-    setEditingId(record.id);
-    setIsFormOpen(true);
+
+    closeEditForm();
   };
 
   const confirmDeleteRecord = () => {
@@ -141,14 +210,26 @@ export default function ResourceManager({
       return;
     }
 
-    setRecords((currentRecords) => currentRecords.filter((record) => record.id !== pendingDelete.id));
-    setLastDeletedRecord(pendingDelete);
+    const recordToDelete = pendingDelete;
+
+    setRecords((currentRecords) => currentRecords.filter((record) => record.id !== recordToDelete.id));
+    setLastDeletedRecord(recordToDelete);
     setPendingDelete(null);
+
+    // give the user a window to undo before it's actually deleted from the DB
+    deleteTimeoutRef.current = setTimeout(() => {
+      DeleteCompletely(recordToDelete);
+    }, 5000);
   };
 
   const undoDelete = () => {
     if (lastDeletedRecord === null) {
       return;
+    }
+
+    if (deleteTimeoutRef.current) {
+      clearTimeout(deleteTimeoutRef.current);
+      deleteTimeoutRef.current = null;
     }
 
     setRecords((currentRecords) => {
@@ -158,65 +239,105 @@ export default function ResourceManager({
     setLastDeletedRecord(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const DeleteCompletely = async (record: ResourceRecord) => {
+    const response = await Fetch_to(json_route.admin.delete_location, {
+      id: record.id,
+      category: title,
+    });
 
-    if (editingId !== null) {
-      setRecords((currentRecords) =>
-        currentRecords.map((record) => {
-          if (record.id !== editingId) {
-            return record;
-          }
-
-          return {
-            id: editingId,
-            ...form,
-          };
-        }),
-      );
-      closeForm();
-      return;
+    if (!response.success) {
+      console.error("Delete failed: ", response.message);
+      // put it back in the UI since the backend delete failed
+      setRecords((currentRecords) => {
+        const restoredRecords = [...currentRecords, record];
+        return restoredRecords.sort((a, b) => a.id - b.id);
+      });
     }
 
-    setRecords((currentRecords) => [
-      ...currentRecords,
-      {
-        id: nextId,
-        ...form,
-      },
-    ]);
-    closeForm();
+    setLastDeletedRecord((current) => (current?.id === record.id ? null : current));
   };
+
+  useEffect(() => {
+    return () => {
+      if (deleteTimeoutRef.current) {
+        clearTimeout(deleteTimeoutRef.current);
+      }
+    };
+  }, []);
+
+
+  useEffect(() => {
+    async function Retrieve() {
+      setIsLoading(true);
+      const response = await Fetch_to(json_route.admin.retrieve_location, { category: title });
+      
+      if (response.success) {
+        const data = response.data as RetrieveResponseData | null;
+        setRecords(Array.isArray(data?.message) ? data.message : []);
+      }
+
+      setIsLoading(false);
+    }
+    Retrieve();
+  }, [title]);
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950 lg:pl-72">
       <SideBar />
 
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 border-b border-zinc-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="border-b border-zinc-200 pb-5">
           <div>
             <p className="text-sm font-medium uppercase tracking-wide text-teal-700">Admin</p>
             <h1 className="mt-1 text-3xl font-semibold text-zinc-950">{title}</h1>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (isFormOpen) {
-                closeForm();
-                return;
-              }
-
-              openAddForm();
-            }}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
-          >
-            <span aria-hidden="true" className="text-lg leading-none">+</span>
-            {isFormOpen ? "Close form" : `Add ${singularName}`}
-          </button>
         </div>
 
-        {isFormOpen ? (
+        {pendingDelete ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 px-4 py-6">
+            <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-5 shadow-xl">
+              <h2 className="text-lg font-semibold text-zinc-950">Delete record?</h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-600">
+                Are you sure you want to delete <span className="font-semibold text-zinc-950">{pendingDelete.name}</span>?
+                You can undo this after deleting.
+              </p>
+
+              <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPendingDelete(null)}
+                  className="h-11 rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteRecord}
+                  className="h-11 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-700"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {lastDeletedRecord ? (
+          <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Deleted <span className="font-semibold">{lastDeletedRecord.name}</span>.
+            </span>
+            <button
+              type="button"
+              onClick={undoDelete}
+              className="h-9 rounded-md bg-amber-600 px-4 text-sm font-semibold text-white transition hover:bg-amber-700"
+            >
+              Undo
+            </button>
+          </div>
+        ) : null}
+
+        {editingRecord ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 px-4 py-6">
             <form
               onSubmit={handleSubmit}
@@ -224,16 +345,12 @@ export default function ResourceManager({
             >
               <div className="flex items-start justify-between gap-4 border-b border-zinc-200 pb-3 sm:col-span-2 lg:col-span-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-zinc-950">
-                    {editingId === null ? `Add ${singularName}` : `Edit ${singularName}`}
-                  </h2>
-                  <p className="text-sm text-zinc-500">
-                    {editingId === null ? `Insert a new ${singularName.toLowerCase()} record.` : "Update the selected record."}
-                  </p>
+                  <h2 className="text-lg font-semibold text-zinc-950">Edit {singularName}</h2>
+                  <p className="text-sm text-zinc-500">Update the selected record.</p>
                 </div>
                 <button
                   type="button"
-                  onClick={closeForm}
+                  onClick={closeEditForm}
                   className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
                 >
                   Close
@@ -347,24 +464,15 @@ export default function ResourceManager({
                 />
               </label>
 
-              <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2">
-                Image Upload
-                <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-center transition hover:border-teal-600 hover:bg-teal-50">
-                  <span className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white">
-                    Upload Image
-                  </span>
-                  <span className="max-w-full break-words text-xs font-normal text-zinc-600">
-                    {form.image_src || "Choose an image from your device"}
-                  </span>
-                  <input
-                    required={form.image_src.length === 0}
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => handleImageUpload(event.target.files?.[0] ?? null)}
-                    className="sr-only"
-                  />
-                </label>
-              </div>
+              <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2">
+                Image Source
+                <input
+                  value={form.image_src}
+                  onChange={(event) => updateField("image_src", event.target.value)}
+                  className="h-11 rounded-md border border-zinc-300 px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  placeholder="Image path or filename"
+                />
+              </label>
 
               <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
                 Iframe Link
@@ -379,7 +487,7 @@ export default function ResourceManager({
               <div className="flex flex-col-reverse gap-3 sm:col-span-2 sm:flex-row sm:justify-end lg:col-span-3">
                 <button
                   type="button"
-                  onClick={closeForm}
+                  onClick={closeEditForm}
                   className="h-11 rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
                 >
                   Cancel
@@ -388,54 +496,83 @@ export default function ResourceManager({
                   type="submit"
                   className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
                 >
-                  {editingId === null ? "Insert" : "Save Changes"}
+                  Save Changes
                 </button>
               </div>
             </form>
           </div>
         ) : null}
 
-        {pendingDelete ? (
+        {selectedRecord ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 px-4 py-6">
-            <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-5 shadow-xl">
-              <h2 className="text-lg font-semibold text-zinc-950">Delete record?</h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-600">
-                Are you sure you want to delete <span className="font-semibold text-zinc-950">{pendingDelete.name}</span>?
-                You can undo this after deleting.
-              </p>
-
-              <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-xl">
+              <div className="flex flex-col gap-4 border-b border-zinc-200 p-5 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium uppercase tracking-wide text-teal-700">{singularName} Details</p>
+                  <h2 className="mt-1 text-2xl font-semibold text-zinc-950">{selectedRecord.name}</h2>
+                  <p className="mt-1 text-sm text-zinc-500">ID #{selectedRecord.id}</p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setPendingDelete(null)}
-                  className="h-11 rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                  onClick={() => setSelectedRecord(null)}
+                  className="h-10 rounded-md border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmDeleteRecord}
-                  className="h-11 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-700"
-                >
-                  Confirm Delete
+                  Close
                 </button>
               </div>
-            </div>
-          </div>
-        ) : null}
 
-        {lastDeletedRecord ? (
-          <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              Deleted <span className="font-semibold">{lastDeletedRecord.name}</span>.
-            </span>
-            <button
-              type="button"
-              onClick={undoDelete}
-              className="h-9 rounded-md bg-amber-600 px-4 text-sm font-semibold text-white transition hover:bg-amber-700"
-            >
-              Undo
-            </button>
+              <div className="grid gap-5 p-5 lg:grid-cols-[1fr_0.8fr]">
+                <div className="grid gap-4">
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">About</h3>
+                    <p className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+                      {selectedRecord.about || "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Transportations</h3>
+                    <div className="mt-2 grid gap-3">
+                      {parseTransportations(selectedRecord.transportations).length > 0 ? (
+                        parseTransportations(selectedRecord.transportations).map((transportation, index) => (
+                          <div key={`${transportation.type}-${index}`} className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                            <span className="inline-flex rounded bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-800">
+                              {transportation.type}
+                            </span>
+                            <p className="mt-2 text-sm leading-6 text-zinc-700">{transportation.description}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-500">N/A</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Location</h3>
+                    <p className="mt-1 text-sm font-semibold text-zinc-950">{selectedRecord.locations || "N/A"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Gmail</h3>
+                    <p className="mt-1 break-words text-sm text-zinc-700">{selectedRecord.gmail || "N/A"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Facebook Page</h3>
+                    <p className="mt-1 break-words text-sm text-zinc-700">{selectedRecord.facebook_page || "N/A"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Image</h3>
+                    <p className="mt-1 break-words text-sm text-zinc-700">{selectedRecord.image_src || "N/A"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Map</h3>
+                    <p className="mt-1 break-words text-sm text-zinc-700">{selectedRecord.iframe_link || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -463,8 +600,25 @@ export default function ResourceManager({
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {records.map((record) => (
-                  <tr key={record.id} className="align-top transition odd:bg-white even:bg-zinc-50/60 hover:bg-teal-50/60">
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, index) => (
+                    <tr key={index} className="animate-pulse">
+                      {Array.from({ length: 9 }).map((__, cellIndex) => (
+                        <td key={cellIndex} className="px-4 py-4">
+                          <div className="h-4 rounded bg-zinc-200" />
+                          {cellIndex === 0 || cellIndex === 4 || cellIndex === 5 ? (
+                            <div className="mt-2 h-3 w-2/3 rounded bg-zinc-100" />
+                          ) : null}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                  : records.map((record) => (
+                  <tr
+                    key={record.id}
+                    onClick={() => setSelectedRecord(record)}
+                    className="cursor-pointer align-top transition odd:bg-white even:bg-zinc-50/60 hover:bg-teal-50/60"
+                  >
                     <td className="px-4 py-4">
                       <div className="font-semibold text-zinc-950">{record.name}</div>
                       <div className="mt-1 text-xs font-medium text-zinc-400">ID #{record.id}</div>
@@ -500,7 +654,7 @@ export default function ResourceManager({
                     </td>
                     <td className="px-4 py-4 text-zinc-700">
                       <div className="flex flex-col gap-2">
-                        {record.transportations.map((transportation, index) => (
+                        {parseTransportations(record.transportations).map((transportation, index) => (
                           <div key={`${transportation.type}-${index}`} className="rounded-md border border-zinc-200 bg-white p-2">
                             <span className="mb-1 inline-flex rounded bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-800">
                               {transportation.type}
@@ -531,14 +685,20 @@ export default function ResourceManager({
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => editRecord(record)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openEditForm(record);
+                          }}
                           className="h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-700 transition hover:bg-white"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
-                          onClick={() => setPendingDelete(record)}
+                          onClick={async(event) => {
+                            event.stopPropagation();
+                            setPendingDelete(record);
+                          }}
                           className="h-9 rounded-md bg-red-600 px-3 text-xs font-semibold text-white transition hover:bg-red-700"
                         >
                           Delete
@@ -550,6 +710,12 @@ export default function ResourceManager({
               </tbody>
             </table>
           </div>
+
+          {!isLoading && records.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <p className="text-sm font-medium text-zinc-500">No records loaded yet.</p>
+            </div>
+          ) : null}
         </div>
       </section>
     </main>

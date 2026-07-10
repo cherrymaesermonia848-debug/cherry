@@ -1,23 +1,43 @@
 "use client";
-
-import { FormEvent, useState } from "react";
+import { Fetch_to } from "@/utilities";
+import json_route from "@/config/json_route.json";
+import { FormEvent, useState, useEffect } from "react";
 import { SideBar } from "@/components/admin";
+import { useRouter } from "next/navigation";
 
 export default function Setting_page() {
-  const [username, setUsername] = useState("admin");
+  const router = useRouter();
+  const [email, setEmail] = useState("admin@admin.com");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    async function Verify() {
+      const response = await Fetch_to(json_route.jwt.verify);
+      if (!response.success) return router.push("/auth/sign-in");
+    }
+    Verify();
+  }, []);
+
+  const handleSubmit = async(event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
 
     if (password !== confirmPassword) {
       setMessage("Password and confirmation do not match.");
       return;
     }
 
-    setMessage("Account settings updated.");
+    const response = await Fetch_to(json_route.admin.settings, { email: email, password: password, c_password: confirmPassword });
+
+    if (response.success) {
+      setMessage(response.data.message);
+    } else {
+      setMessage(response.message);
+    }
+    setLoading(false);
     setPassword("");
     setConfirmPassword("");
   };
@@ -41,10 +61,11 @@ export default function Setting_page() {
               User Name
               <input
                 required
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 className="h-11 rounded-md border border-zinc-300 px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                 placeholder="Enter user name"
+                disabled
               />
             </label>
 
@@ -75,7 +96,7 @@ export default function Setting_page() {
 
           {message ? (
             <div className={`mt-4 rounded-md px-4 py-3 text-sm font-semibold ${
-              message.includes("updated")
+              message.includes("Update Successfully")
                 ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
                 : "border border-red-200 bg-red-50 text-red-700"
             }`}
@@ -89,7 +110,7 @@ export default function Setting_page() {
               type="submit"
               className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
             >
-              Save Settings
+              {loading ? "Saving..." : "Save Settings"}
             </button>
           </div>
         </form>
