@@ -263,7 +263,7 @@ export default function EventsPage() {
         console.error("Delete news failed: ", response.message);
         return;
       }
-      setLatestNews((currentNews) => currentNews.filter((news) => news.id !== id));
+      setUpcomingEvents((currentNews) => currentNews.filter((news) => news.id !== id));
     } catch (err) {
       console.error(err);
     } finally {
