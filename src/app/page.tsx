@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent, useRef } from "react";
 import json_route from "@/config/json_route.json";
 import { Fetch_to } from "@/utilities";
 
@@ -199,6 +199,7 @@ export default function Home() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const place = places[placeIndex];
   const visiblePlaceCount = 3;
+  const skipMapResetRef = useRef(false);
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
   const [selectedMapId, setSelectedMapId] = useState("");
   const defaultMapSource = `https://www.google.com/maps?q=${encodeURIComponent("Pontevedra, Capiz, Philippines")}&output=embed`;
@@ -369,6 +370,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (skipMapResetRef.current) {
+      skipMapResetRef.current = false;
+      return;
+    }
     setSelectedMapId("");
   }, [selectedMapCategory]);
 
@@ -407,6 +412,7 @@ export default function Home() {
       id: "beaches",
       eyebrow: "Explore Pontevedra",
       title: "All Beaches",
+      category: "Beaches",
       text: "View beach and coastal destinations around Pontevedra, with barangay details and quick map access for trip planning.",
       items: beachDestinations,
     },
@@ -414,6 +420,7 @@ export default function Home() {
       id: "barangay",
       eyebrow: "Local Communities",
       title: "All Barangays",
+      category: "Barangay",
       text: "Browse Pontevedra barangays and open map searches for local community routes and nearby destinations.",
       items: barangayDestinations,
     },
@@ -421,6 +428,7 @@ export default function Home() {
       id: "resorts",
       eyebrow: "Where To Stay",
       title: "All Resorts",
+      category: "Resort",
       text: "View resort and stay options for visitors planning overnight trips, family breaks, and coastal routes.",
       items: resortDestinations,
     },
@@ -428,6 +436,7 @@ export default function Home() {
       id: "cafe",
       eyebrow: "Food Stops",
       title: "All Cafes",
+      category: "Cafe",
       text: "Find cafe and food stop categories for breaks, snacks, and local refreshments during your trip.",
       items: cafeDestinations,
     },
@@ -435,6 +444,7 @@ export default function Home() {
       id: "heritage",
       eyebrow: "Culture And History",
       title: "All Heritage Sites",
+      category: "Heritage",
       text: "Explore faith, civic, and cultural heritage stops connected to Pontevedra stories and traditions.",
       items: heritageDestinations,
     },
@@ -442,6 +452,7 @@ export default function Home() {
       id: "tourist",
       eyebrow: "Visitor Guide",
       title: "All Tourist Attractions",
+      category: "Tourist Spot",
       text: "See notable places, routes, and local attractions that visitors can include in a Pontevedra itinerary.",
       items: touristDestinations,
     },
@@ -492,7 +503,18 @@ export default function Home() {
     return `https://${trimmed}`;
   };
 
-  
+  const handleOpenMapFromModal = () => {
+    if (!selectedDestination) return;
+
+    skipMapResetRef.current = true;
+    setSelectedMapCategory(selectedDestination.category);
+    setSelectedMapId(String(selectedDestination.id));
+    closeDestinationDetails();
+
+    window.setTimeout(() => {
+      document.querySelector("#stay")?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
 
   return (
     <main className="min-h-screen bg-white text-[#2f2f2f]">
@@ -787,18 +809,11 @@ export default function Home() {
                       <h3 className="mt-3 text-2xl font-black text-[#161616]">{item.name}</h3>
                       <p className="mt-3 min-h-20 text-base leading-7 text-[#666666]">{item.description}</p>
                       <div className="mt-6 flex flex-wrap gap-3">
-                        <a
-                          className="inline-flex h-11 items-center justify-center bg-[#0b6d36] px-5 text-sm font-black text-white transition hover:bg-[#07552a]"
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name} ${item.location} Pontevedra Capiz`)}`}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          Open Map
-                        </a>
+                        
                         <button
                           className="inline-flex h-11 items-center justify-center border border-[#0b6d36] px-5 text-sm font-black text-[#0b6d36] transition hover:bg-[#edf7f0]"
                           type="button"
-                          onClick={() => openDestinationDetails(item, section.title.replace("All ", ""))}
+                          onClick={() => openDestinationDetails(item, section.category)}
                         >
                           View Details
                         </button>
@@ -1053,14 +1068,13 @@ export default function Home() {
                     </div>
                   ) : null}
 
-                  <a
+                  <button
+                    type="button"
+                    onClick={handleOpenMapFromModal}
                     className="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#0b6d36] px-5 text-sm font-black text-white transition hover:bg-[#07552a]"
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedDestination.name} ${selectedDestination.location} Pontevedra Capiz`)}`}
-                    rel="noreferrer"
-                    target="_blank"
                   >
                     Open Map
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

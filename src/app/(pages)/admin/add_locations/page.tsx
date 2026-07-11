@@ -315,6 +315,7 @@ export default function AddLocationsPage() {
             <button
               type="submit"
               disabled={disabled_button}
+              style={{ opacity: disabled_button ? "0.5" : "1" }}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 sm:w-auto"
             >
               <span aria-hidden="true" className="text-lg leading-none">+</span>
