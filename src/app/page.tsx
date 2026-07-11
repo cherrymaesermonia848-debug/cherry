@@ -1,17 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
+import json_route from "@/config/json_route.json";
+import { Fetch_to } from "@/utilities";
+
+type Transportation = {
+  type: string;
+  description: string;
+};
 
 type Destination = {
+  id: number;
   name: string;
   location: string;
   description: string;
   image: string;
+  iframeLink: string;
+  facebookPage: string;
+  gmail: string;
+  transportations: Transportation[];
 };
 
 type SelectedDestination = Destination & {
   category: string;
 };
+
+type RawRow = Record<string, unknown>;
 
 const menuItems = [
   {
@@ -75,37 +89,43 @@ const places = [
     title: "BEACHES",
     href: "#beaches",
     desc: "Discover the beautiful beaches of Pontevedra with exact geolocation pins and scenic travel notes.",
-    image: "from-[#235c71] via-[#d7c082] to-[#0d3324]",
+    category: "Beaches",
+    fallback: "from-[#235c71] via-[#d7c082] to-[#0d3324]",
   },
   {
     title: "RESORTS",
     href: "#resorts",
     desc: "Find relaxing resorts, nearby routes, and visitor-friendly vacation stops around Pontevedra.",
-    image: "from-[#174334] via-[#79a96f] to-[#e7d8b0]",
+    category: "Resort",
+    fallback: "from-[#174334] via-[#79a96f] to-[#e7d8b0]",
   },
   {
     title: "BARANGAY",
     href: "#barangay",
     desc: "Browse Pontevedra barangays and discover local community destinations by area.",
-    image: "from-[#1e4c38] via-[#8fb36d] to-[#d8c371]",
+    category: "Barangay",
+    fallback: "from-[#1e4c38] via-[#8fb36d] to-[#d8c371]",
   },
   {
     title: "CAFE",
     href: "#cafe",
     desc: "Connect with local cafes and food stops that make every tourism route easier to enjoy.",
-    image: "from-[#4a2f1d] via-[#b27a3c] to-[#f1dcb8]",
+    category: "Cafe",
+    fallback: "from-[#4a2f1d] via-[#b27a3c] to-[#f1dcb8]",
   },
   {
     title: "HERITAGE",
     href: "#heritage",
     desc: "Explore churches, landmarks, stories, and cultural destinations with accurate place data.",
-    image: "from-[#2f342e] via-[#8d9a86] to-[#d5c8a6]",
+    category: "Heritage",
+    fallback: "from-[#2f342e] via-[#8d9a86] to-[#d5c8a6]",
   },
   {
     title: "TOURIST ATTRACTIONS",
     href: "#tourist",
     desc: "See notable places, community stops, and local attractions for better trip planning.",
-    image: "from-[#1f5d76] via-[#92b7b9] to-[#e2c478]",
+    category: "Tourist Spot",
+    fallback: "from-[#1f5d76] via-[#92b7b9] to-[#e2c478]",
   },
 ];
 
@@ -117,36 +137,28 @@ const infoSections = [
   ["news", "Latest News", "Read municipal tourism updates, announcements, and destination advisories."],
 ];
 
-const newsItems = [
-  ["Pontevedra Beach Clean-up Drive", "Volunteers unite for a cleaner beach.", "from-[#174334] to-[#83b38f]"],
-  ["Kasalag Festival 2026", "Culture and traditions celebration.", "from-[#8a4b16] to-[#efc36f]"],
-];
+type NewsItem = {
+  id: number;
+  title: string;
+  text: string;
+};
 
-const events = [
-  ["JUN 25", "Feast of St. John the Baptist"],
-  ["JUL 10", "Coastal Clean-up Drive"],
-  ["AUG 01", "Kasalag Festival 2026"],
-];
+type EventItem = {
+  id: number;
+  title: string;
+  text: string;
+  date: string;       // formatted display date, e.g. "JUN 25"
+  rawDate: string;    // original date string, for sorting
+  locationsType: string;
+  locationId: number | null;
+};
 
-const galleryItems = [
-  "from-[#0e3d2b] to-[#80a56e]",
-  "from-[#1f5d76] to-[#d5c46e]",
-  "from-[#6b3d1e] to-[#edc483]",
-  "from-[#273d31] to-[#b8c9ad]",
-  "from-[#1f4f40] to-[#e2d1a5]",
-  "from-[#334155] to-[#9bb7c0]",
-];
+type GalleryImage = {
+  id: number;
+  image_link: string;
+};
 
-const beachDestinations: Destination[] = [];
-const barangayDestinations: Destination[] = [];
-const resortDestinations: Destination[] = [];
-const cafeDestinations: Destination[] = [];
-const heritageDestinations: Destination[] = [];
-const touristDestinations: Destination[] = [];
 
-const mapOptions = [
-  { label: "Pontevedra, Capiz", location: "Pontevedra, Capiz, Philippines" },
-];
 
 const footerLinks = [
   ["Home", "#home"],
@@ -174,11 +186,191 @@ export default function Home() {
   const [selectedDestination, setSelectedDestination] = useState<SelectedDestination | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(false);
-  const [selectedMapLocation, setSelectedMapLocation] = useState(mapOptions[0].location);
+  const [beachDestinations, setBeachDestinations] = useState<Destination[]>([]);
+  const [barangayDestinations, setBarangayDestinations] = useState<Destination[]>([]);
+  const [resortDestinations, setResortDestinations] = useState<Destination[]>([]);
+  const [cafeDestinations, setCafeDestinations] = useState<Destination[]>([]);
+  const [heritageDestinations, setHeritageDestinations] = useState<Destination[]>([]);
+  const [touristDestinations, setTouristDestinations] = useState<Destination[]>([]);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const place = places[placeIndex];
   const visiblePlaceCount = 3;
-  const selectedMapOption = mapOptions.find((option) => option.location === selectedMapLocation) ?? mapOptions[0];
-  const selectedMapSource = `https://www.google.com/maps?q=${encodeURIComponent(selectedMapLocation)}&output=embed`;
+  const [selectedMapCategory, setSelectedMapCategory] = useState("");
+  const [selectedMapId, setSelectedMapId] = useState("");
+  const defaultMapSource = `https://www.google.com/maps?q=${encodeURIComponent("Pontevedra, Capiz, Philippines")}&output=embed`;
+
+  const mapCategoryDestinationMap: Record<string, Destination[]> = {
+    "Barangay": barangayDestinations,
+    "Beaches": beachDestinations,
+    "Cafe": cafeDestinations,
+    "Heritage": heritageDestinations,
+    "Resort": resortDestinations,
+    "Tourist Spot": touristDestinations,
+  };
+
+  const mapCategoryOptions = selectedMapCategory
+    ? mapCategoryDestinationMap[selectedMapCategory] ?? []
+    : [];
+
+  const selectedMapDestination = mapCategoryOptions.find(
+    (item) => item.id === Number(selectedMapId)
+  );
+
+  const selectedMapLabel = selectedMapDestination
+    ? `${selectedMapDestination.name} (${selectedMapCategory})`
+    : "Pontevedra, Capiz";
+
+  const selectedMapSource = selectedMapDestination?.iframeLink || defaultMapSource;
+
+  const categoryPreviewImageMap: Record<string, string> = {
+    "Beaches": beachDestinations[0]?.image ?? "",
+    "Resort": resortDestinations[0]?.image ?? "",
+    "Barangay": barangayDestinations[0]?.image ?? "",
+    "Cafe": cafeDestinations[0]?.image ?? "",
+    "Heritage": heritageDestinations[0]?.image ?? "",
+    "Tourist Spot": touristDestinations[0]?.image ?? "",
+  };
+
+  const newsCategoryColumnMap: Record<string, string> = {
+    "Barangay": "barangay_id",
+    "Beaches": "beaches_id",
+    "Cafe": "cafe_id",
+    "Heritage": "heritage_id",
+    "Resort": "resort_id",
+    "Tourist Spot": "touristspot_id",
+  };
+  const allDestinationsWithCategory: SelectedDestination[] = [
+    ...beachDestinations.map((item) => ({ ...item, category: "Beaches" })),
+    ...barangayDestinations.map((item) => ({ ...item, category: "Barangay" })),
+    ...resortDestinations.map((item) => ({ ...item, category: "Resort" })),
+    ...cafeDestinations.map((item) => ({ ...item, category: "Cafe" })),
+    ...heritageDestinations.map((item) => ({ ...item, category: "Heritage" })),
+    ...touristDestinations.map((item) => ({ ...item, category: "Tourist Spot" })),
+  ];
+
+  const searchResults =
+    searchQuery.trim().length > 0
+      ? allDestinationsWithCategory
+          .filter((item) =>
+            item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+            item.location.toLowerCase().includes(searchQuery.trim().toLowerCase())
+          )
+          .slice(0, 8)
+      : [];
+
+  useEffect(() => {
+    const categorySetterMap: [string, (items: Destination[]) => void][] = [
+      ["Beaches", setBeachDestinations],
+      ["Barangay", setBarangayDestinations],
+      ["Resort", setResortDestinations],
+      ["Cafe", setCafeDestinations],
+      ["Heritage", setHeritageDestinations],
+      ["Tourist Spot", setTouristDestinations],
+    ];
+
+    async function fetchDestinations() {
+      await Promise.all(
+        categorySetterMap.map(async ([category, setter]) => {
+          const response = await Fetch_to(json_route.admin.retrieve_location, { category });
+          console.log(response.data.message);
+          if (response.success) {
+            const rows = response.data?.message as RawRow[] | undefined;
+            if (Array.isArray(rows)) {
+              setter(
+                rows.map((row) => ({
+                  id: row.id as number,
+                  name: (row.name as string) ?? "",
+                  location: (row.locations as string) ?? "",
+                  description: (row.about as string) ?? "",
+                  image: typeof row.image_src === "string" ? row.image_src : "",
+                  iframeLink: (row.iframe_link as string) ?? "",
+                  facebookPage: (row.facebook_page as string) ?? "",
+                  gmail: (row.gmail as string) ?? "",
+                  transportations: parseTransportations(row.transportations),
+                }))
+              );
+            }
+          }
+        })
+      );
+    }
+
+    fetchDestinations();
+      async function fetchNews() {
+      const response = await Fetch_to(json_route.admin.retrieve_news);
+      if (response.success) {
+        const rows = response.data?.message as RawRow[] | undefined;
+        if (Array.isArray(rows)) {
+          setNewsItems(
+            rows.map((row) => ({
+              id: row.id as number,
+              title: (row.located_in as string) ?? (row.locations_type as string) ?? "Update",
+              text: (row.description as string) ?? "",
+            }))
+          );
+        }
+      }
+    }
+
+    fetchNews();
+
+    async function fetchEvents() {
+      const response = await Fetch_to(json_route.admin.retrieve_events);
+      if (response.success) {
+        const rows = response.data?.message as RawRow[] | undefined;
+        if (Array.isArray(rows)) {
+          const mapped = rows.map((row) => {
+            const locationsType = (row.locations_type as string) ?? "";
+            const fkColumn = newsCategoryColumnMap[locationsType];
+            const rawDate = (row.date as string) ?? "";
+            return {
+              id: row.id as number,
+              title: (row.located_in as string) ?? locationsType ?? "Event",
+              text: (row.description as string) ?? "",
+              date: rawDate
+                ? new Date(rawDate).toLocaleDateString("en-US", { month: "short", day: "2-digit" }).toUpperCase()
+                : "",
+              rawDate,
+              locationsType,
+              locationId: fkColumn ? (row[fkColumn] as number | null) ?? null : null,
+            };
+          });
+
+          mapped.sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
+
+          setUpcomingEvents(mapped);
+        }
+      }
+    }
+
+    fetchEvents();
+
+    async function fetchGallery() {
+      const response = await Fetch_to(json_route.admin.retrieve_gallery);
+      if (response.success) {
+        const rows = response.data?.message as RawRow[] | undefined;
+        if (Array.isArray(rows)) {
+          setGalleryImages(
+            rows.map((row) => ({
+              id: row.id as number,
+              image_link: row.image_link as string,
+            }))
+          );
+        }
+      }
+    }
+
+    fetchGallery();
+
+  }, []);
+
+  useEffect(() => {
+    setSelectedMapId("");
+  }, [selectedMapCategory]);
 
   useEffect(() => {
     setNow(new Date());
@@ -206,6 +398,7 @@ export default function Home() {
     setExpandedSections((current) => ({ ...current, [id]: !current[id] }));
   };
   const openDestinationDetails = (item: Destination, category: string) => {
+    console.log("Full item clicked:", item);
     setSelectedDestination({ ...item, category });
   };
   const closeDestinationDetails = () => setSelectedDestination(null);
@@ -253,6 +446,53 @@ export default function Home() {
       items: touristDestinations,
     },
   ];
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (searchResults.length > 0) {
+      handleSearchResultClick(searchResults[0]);
+    }
+  };
+
+  const handleSearchResultClick = (item: SelectedDestination) => {
+    setSelectedDestination(item);
+    setSearchQuery("");
+    setIsSearchFocused(false);
+    setIsMobileMenuOpen(false);
+  };
+
+  const parseTransportations = (raw: unknown): Transportation[] => {
+    if (Array.isArray(raw)) {
+      return raw.filter(
+        (t): t is Transportation =>
+          typeof t === "object" && t !== null && "type" in t && "description" in t
+      );
+    }
+
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(
+        (t): t is Transportation =>
+          typeof t === "object" && t !== null && "type" in t && "description" in t
+      );
+    } catch {
+      return [{ type: "Transportation", description: raw }];
+    }
+  };
+
+  const normalizeUrl = (url: string): string => {
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
+  
 
   return (
     <main className="min-h-screen bg-white text-[#2f2f2f]">
@@ -354,20 +594,59 @@ export default function Home() {
                 ))}
               </ul>
 
-              <form className="flex h-12 w-full min-w-0 max-w-full border border-[#d8d8d8] bg-white xl:justify-self-end" action="#">
-                <label className="sr-only" htmlFor="search">
-                  Search
-                </label>
-                <input
-                  id="search"
-                  className="min-w-0 flex-1 px-3 text-base text-[#222222] outline-none placeholder:text-[#8b8f94] sm:px-4"
-                  type="text"
-                  placeholder="Search"
-                />
-                <button className="w-14 shrink-0 bg-[#0b6d36] text-sm font-black text-white transition hover:bg-[#07552a] sm:w-16" type="submit">
-                  Go
-                </button>
-              </form>
+              <div className="relative w-full xl:justify-self-end">
+                <form
+                  className="flex h-12 w-full min-w-0 max-w-full border border-[#d8d8d8] bg-white"
+                  onSubmit={handleSearchSubmit}
+                >
+                  <label className="sr-only" htmlFor="search">
+                    Search destinations
+                  </label>
+                  <input
+                    id="search"
+                    className="min-w-0 flex-1 px-3 text-base text-[#222222] outline-none placeholder:text-[#8b8f94] sm:px-4"
+                    type="text"
+                    placeholder="Search destinations"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => window.setTimeout(() => setIsSearchFocused(false), 150)}
+                  />
+                  <button className="w-14 shrink-0 bg-[#0b6d36] text-sm font-black text-white transition hover:bg-[#07552a] sm:w-16" type="submit">
+                    Go
+                  </button>
+                </form>
+
+                {isSearchFocused && searchQuery.trim().length > 0 && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto border border-[#d8d8d8] bg-white shadow-xl">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((item) => (
+                        <button
+                          key={`${item.category}-${item.id}`}
+                          type="button"
+                          onMouseDown={(event) => {
+                            event.preventDefault(); // stops the input from blurring before click registers
+                            handleSearchResultClick(item);
+                          }}
+                          className="flex w-full items-center gap-3 border-b border-[#f0f0f0] px-4 py-3 text-left transition last:border-b-0 hover:bg-[#f1f7f3]"
+                        >
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="h-10 w-10 shrink-0 rounded object-cover" />
+                          ) : (
+                            <span className="h-10 w-10 shrink-0 rounded bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
+                          )}
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-bold text-[#161616]">{item.name}</span>
+                            <span className="block truncate text-xs text-[#0b6d36]">{item.category} • {item.location}</span>
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-4 py-3 text-sm text-[#666666]">No matches found.</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </nav>
@@ -418,7 +697,15 @@ export default function Home() {
       ))}
 
       <section id="explore" className="relative isolate min-h-[660px] overflow-hidden px-5 py-20 text-white lg:px-20">
-        <div className={`absolute inset-0 -z-30 bg-gradient-to-br ${place.image}`} />
+       {categoryPreviewImageMap[place.category] ? (
+          <img
+            src={categoryPreviewImageMap[place.category]}
+            alt={place.title}
+            className="absolute inset-0 -z-30 h-full w-full object-cover"
+          />
+        ) : (
+          <div className={`absolute inset-0 -z-30 bg-gradient-to-br ${place.fallback}`} />
+        )}
         <div className="absolute inset-0 -z-20 bg-black/55" />
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
           <div className="pt-16">
@@ -440,7 +727,11 @@ export default function Home() {
                   type="button"
                   onClick={() => showPlace(index)}
                 >
-                  <span className={`block h-40 bg-gradient-to-br ${item.image}`} />
+                  {categoryPreviewImageMap[item.category] ? (
+                    <img src={categoryPreviewImageMap[item.category]} alt={item.title} className="h-40 w-full object-cover" />
+                  ) : (
+                    <span className={`block h-40 bg-gradient-to-br ${item.fallback}`} />
+                  )}
                   <span className="block p-4 text-xl font-black">{item.title}</span>
                 </button>
               ))}
@@ -486,7 +777,11 @@ export default function Home() {
               <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visibleItems.map((item) => (
                   <article className="overflow-hidden border border-[#e2e8e4] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" key={item.name}>
-                    <div className={`h-52 bg-gradient-to-br ${item.image}`} />
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="h-52 w-full object-cover" />
+                    ) : (
+                      <div className="h-52 bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
+                    )}
                     <div className="p-6">
                       <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0b6d36]">{item.location}</p>
                       <h3 className="mt-3 text-2xl font-black text-[#161616]">{item.name}</h3>
@@ -539,30 +834,53 @@ export default function Home() {
                 Choose a resource from the dropdown to view its location on the map.
               </p>
             </div>
+            <div className="flex w-full flex-col gap-4 md:max-w-sm">
+              <label className="flex flex-col gap-2 text-sm font-black uppercase tracking-wide text-[#123126]">
+                Location Type
+                <select
+                  value={selectedMapCategory}
+                  onChange={(event) => setSelectedMapCategory(event.target.value)}
+                  className="h-12 w-full border border-[#d8d8d8] bg-white px-4 text-sm font-bold normal-case tracking-normal text-[#222222] outline-none transition focus:border-[#0b6d36] focus:ring-2 focus:ring-[#d8f3df]"
+                >
+                  <option value="">Select Locations</option>
+                  {Object.keys(mapCategoryDestinationMap).map((category) => (
+                    <option value={category} key={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="flex w-full flex-col gap-2 text-sm font-black uppercase tracking-wide text-[#123126] md:max-w-sm">
-              Select Location
-              <select
-                value={selectedMapLocation}
-                onChange={(event) => setSelectedMapLocation(event.target.value)}
-                className="h-12 w-full border border-[#d8d8d8] bg-white px-4 text-sm font-bold normal-case tracking-normal text-[#222222] outline-none transition focus:border-[#0b6d36] focus:ring-2 focus:ring-[#d8f3df]"
-              >
-                {mapOptions.map((option) => (
-                  <option value={option.location} key={`${option.label}-${option.location}`}>
-                    {option.label}
+              <label className="flex flex-col gap-2 text-sm font-black uppercase tracking-wide text-[#123126]">
+                {selectedMapCategory || "Name"}
+                <select
+                  value={selectedMapId}
+                  onChange={(event) => setSelectedMapId(event.target.value)}
+                  disabled={mapCategoryOptions.length === 0}
+                  className="h-12 w-full border border-[#d8d8d8] bg-white px-4 text-sm font-bold normal-case tracking-normal text-[#222222] outline-none transition focus:border-[#0b6d36] focus:ring-2 focus:ring-[#d8f3df] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {mapCategoryOptions.length === 0 ? "No records found" : `Select a ${selectedMapCategory}`}
                   </option>
-                ))}
-              </select>
-            </label>
+                  {mapCategoryOptions.map((item) => (
+                    <option value={item.id} key={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
 
           <div className="mb-4 border-l-8 border-[#0b6d36] bg-white px-5 py-4 shadow-sm">
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0b6d36]">{selectedMapOption.label}</p>
-            <p className="mt-1 text-base font-semibold text-[#555555]">{selectedMapOption.location}</p>
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0b6d36]">{selectedMapLabel}</p>
+            {selectedMapDestination ? (
+              <p className="mt-1 text-base font-semibold text-[#555555]">{selectedMapDestination.location}</p>
+            ) : null}
           </div>
 
           <iframe
-            title={`${selectedMapOption.label} location map`}
+            title={`${selectedMapLabel} location map`}
             src={selectedMapSource}
             width="100%"
             height="450"
@@ -577,27 +895,38 @@ export default function Home() {
         <div>
           <h2 className="mb-8 text-3xl font-black text-[#0b6d36]">LATEST NEWS</h2>
           <div className="space-y-5">
-            {newsItems.map(([title, text, image]) => (
-              <article className="flex gap-5 bg-[#f7f7f7] p-4 shadow-sm" key={title}>
-                <span className={`h-24 w-32 shrink-0 bg-gradient-to-br ${image}`} />
-                <div>
-                  <h4 className="text-xl font-black">{title}</h4>
-                  <p className="mt-2 text-[#666666]">{text}</p>
-                </div>
-              </article>
-            ))}
+            {newsItems.length > 0 ? (
+              newsItems.map((news) => (
+                <article className="flex gap-5 bg-[#f7f7f7] p-4 shadow-sm" key={news.id}>
+                  <span className="h-24 w-32 shrink-0 bg-gradient-to-br from-[#174334] to-[#83b38f]" />
+                  <div>
+                    <h4 className="text-xl font-black">{news.title}</h4>
+                    <p className="mt-2 text-[#666666]">{news.text}</p>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="text-base text-[#666666]">No news posted yet.</p>
+            )}
           </div>
         </div>
 
         <div>
           <h2 className="mb-8 text-3xl font-black text-[#0b6d36]">UPCOMING EVENTS</h2>
           <div className="space-y-5">
-            {events.map(([date, text]) => (
-              <article className="flex items-center gap-5 border-l-8 border-[#0b6d36] bg-[#f7f7f7] p-5" key={date}>
-                <h3 className="w-24 text-2xl font-black text-[#0b6d36]">{date}</h3>
-                <p className="text-lg font-semibold">{text}</p>
-              </article>
-            ))}
+            {upcomingEvents.length > 0 ? (
+              upcomingEvents.map((event) => (
+                <article className="flex items-center gap-5 border-l-8 border-[#0b6d36] bg-[#f7f7f7] p-5" key={event.id}>
+                  <h3 className="w-24 text-2xl font-black text-[#0b6d36]">{event.date}</h3>
+                  <div>
+                    <p className="text-lg font-semibold">{event.title}</p>
+                    <p className="mt-1 text-sm text-[#666666]">{event.text}</p>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="text-base text-[#666666]">No upcoming events yet.</p>
+            )}
           </div>
         </div>
       </section>
@@ -605,11 +934,15 @@ export default function Home() {
       <section id="gallery" className="bg-[#f7f7f7] px-5 py-20 lg:px-20">
         <h2 className="mb-10 text-center text-4xl font-black text-[#0b6d36]">EXPERIENCE PONTEVEDRA</h2>
         <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {galleryItems.map((item, index) => (
-            <div className={`h-64 bg-gradient-to-br ${item} shadow-sm`} key={item}>
-              <span className="sr-only">Gallery image {index + 1}</span>
-            </div>
-          ))}
+          {galleryImages.length > 0 ? (
+            galleryImages.map((image) => (
+              <div className="h-64 overflow-hidden shadow-sm" key={image.id}>
+                <img src={image.image_link} alt="Gallery" className="h-full w-full object-cover" />
+              </div>
+            ))
+          ) : (
+            <p className="col-span-full text-center text-base text-[#666666]">No gallery images uploaded yet.</p>
+          )}
         </div>
       </section>
 
@@ -623,7 +956,15 @@ export default function Home() {
       {selectedDestination && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5 py-8" role="dialog" aria-modal="true" aria-labelledby="destination-title">
           <div className="max-h-full w-full max-w-4xl overflow-y-auto bg-white shadow-2xl">
-            <div className={`h-56 bg-gradient-to-br ${selectedDestination.image}`} />
+            {selectedDestination.image ? (
+              <img
+                src={selectedDestination.image}
+                alt={selectedDestination.name}
+                className="h-56 w-full object-cover"
+              />
+            ) : (
+              <div className="h-56 bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
+            )}
             <div className="p-6 sm:p-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -659,17 +1000,59 @@ export default function Home() {
                   <dl className="mt-4 space-y-4 text-sm">
                     <div>
                       <dt className="font-black text-[#0b6d36]">Location</dt>
-                      <dd className="mt-1 text-[#555555]">{selectedDestination.location}</dd>
+                      <dd className="mt-1 text-[#555555]">{selectedDestination.location || "N/A"}</dd>
                     </div>
                     <div>
                       <dt className="font-black text-[#0b6d36]">Category</dt>
                       <dd className="mt-1 text-[#555555]">{selectedDestination.category}</dd>
                     </div>
-                    <div>
-                      <dt className="font-black text-[#0b6d36]">Best For</dt>
-                      <dd className="mt-1 text-[#555555]">Trip planning, local exploration, photos, and route checking.</dd>
-                    </div>
+                    {selectedDestination.facebookPage ? (
+                      <div>
+                        <dt className="font-black text-[#0b6d36]">Facebook Page</dt>
+                        <dd className="mt-1 break-words text-[#555555]">
+                          {selectedDestination.facebookPage ? (
+                            <a
+                              href={normalizeUrl(selectedDestination.facebookPage)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[#0b6d36] underline-offset-2 hover:underline"
+                            >
+                              {selectedDestination.facebookPage}
+                            </a>
+                          ) : (
+                            "N/A"
+                          )}
+                        </dd>
+                      </div>
+                    ) : null}
+                    {selectedDestination.gmail ? (
+                      <div>
+                        <dt className="font-black text-[#0b6d36]">Contact Email</dt>
+                        <dd className="mt-1 break-words">
+                          <a href={`mailto:${selectedDestination.gmail}`} className="text-[#0b6d36] underline-offset-2 hover:underline">
+                            {selectedDestination.gmail}
+                          </a>
+                        </dd>
+                      </div>
+                    ) : null}
                   </dl>
+
+                  {selectedDestination.transportations.length > 0 ? (
+                    <div className="mt-5">
+                      <h4 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Getting There</h4>
+                      <div className="mt-3 space-y-3">
+                        {selectedDestination.transportations.map((t, index) => (
+                          <div key={`${t.type}-${index}`} className="border border-[#e2e8e4] bg-white p-3">
+                            <span className="inline-flex rounded bg-[#0b6d36]/10 px-2 py-0.5 text-xs font-black uppercase text-[#0b6d36]">
+                              {t.type}
+                            </span>
+                            <p className="mt-2 text-sm leading-6 text-[#555555]">{t.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <a
                     className="mt-6 inline-flex h-11 w-full items-center justify-center bg-[#0b6d36] px-5 text-sm font-black text-white transition hover:bg-[#07552a]"
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedDestination.name} ${selectedDestination.location} Pontevedra Capiz`)}`}

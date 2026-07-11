@@ -101,6 +101,7 @@ export default function ResourceManager({
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const openEditForm = (record: ResourceRecord) => {
     setForm({
@@ -288,6 +289,17 @@ export default function ResourceManager({
     }
     Retrieve();
   }, [title, refresh]);
+
+  const filteredRecords = searchQuery.trim().length > 0
+    ? records.filter((record) => {
+        const query = searchQuery.trim().toLowerCase();
+        return (
+          record.name.toLowerCase().includes(query) ||
+          record.locations.toLowerCase().includes(query) ||
+          (record.gmail ?? "").toLowerCase().includes(query)
+        );
+      })
+    : records;
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950 lg:pl-72">
@@ -584,11 +596,26 @@ export default function ResourceManager({
           </div>
         ) : null}
 
+        
+
         <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-1 border-b border-zinc-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-zinc-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-base font-semibold text-zinc-950">{singularName} Records</h2>
-              <p className="text-sm text-zinc-500">{records.length} total record{records.length === 1 ? "" : "s"}</p>
+              <p className="text-sm text-zinc-500">
+                {filteredRecords.length} of {records.length} record{records.length === 1 ? "" : "s"}
+                {searchQuery ? " matching search" : ""}
+              </p>
+            </div>
+
+            <div className="w-full sm:max-w-xs">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={`Search ${singularName.toLowerCase()}...`}
+                className="h-10 w-full rounded-md border border-zinc-300 px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              />
             </div>
           </div>
 
@@ -621,7 +648,7 @@ export default function ResourceManager({
                       ))}
                     </tr>
                   ))
-                  : records.map((record) => (
+                  : filteredRecords.map((record) => (
                   <tr
                     key={record.id}
                     onClick={() => setSelectedRecord(record)}
@@ -719,9 +746,13 @@ export default function ResourceManager({
             </table>
           </div>
 
-          {!isLoading && records.length === 0 ? (
+          {!isLoading && filteredRecords.length === 0 ? (
             <div className="px-4 py-12 text-center">
-              <p className="text-sm font-medium text-zinc-500">No records loaded yet.</p>
+              <p className="text-sm font-medium text-zinc-500">
+                {records.length === 0
+                  ? "No records loaded yet."
+                  : `No ${singularName.toLowerCase()} match "${searchQuery}".`}
+              </p>
             </div>
           ) : null}
         </div>
