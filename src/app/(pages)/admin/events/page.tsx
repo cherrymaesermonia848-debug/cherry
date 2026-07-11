@@ -9,14 +9,21 @@ import { Fetch_to } from "@/utilities";
 type LatestNewsRecord = {
   id: number;
   locationType: string;
+  locationName: string;
   description: string;
 };
 
 type UpcomingEventRecord = {
   id: number;
   locationType: string;
+  locationName: string;
   date: string;
   description: string;
+};
+
+type LocationOption = {
+  id: number;
+  name: string;
 };
 
 const locationTypes = [
@@ -32,11 +39,21 @@ export default function EventsPage() {
   const router = useRouter();
   const [latestNews, setLatestNews] = useState<LatestNewsRecord[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEventRecord[]>([]);
-  const [newsLocationType, setNewsLocationType] = useState(locationTypes[0]);
+
+  const [newsLocationType, setNewsLocationType] = useState("");
+  const [newsLocationOptions, setNewsLocationOptions] = useState<LocationOption[]>([]);
+  const [newsLocationId, setNewsLocationId] = useState<string>("");
   const [newsDescription, setNewsDescription] = useState("");
-  const [eventLocationType, setEventLocationType] = useState(locationTypes[0]);
+  const [isPostingNews, setIsPostingNews] = useState(false);
+  const [deletingNewsId, setDeletingNewsId] = useState<number | null>(null);
+
+  const [eventLocationType, setEventLocationType] = useState("");
+  const [eventLocationOptions, setEventLocationOptions] = useState<LocationOption[]>([]);
+  const [eventLocationId, setEventLocationId] = useState<string>("");
   const [eventDate, setEventDate] = useState("");
   const [eventDescription, setEventDescription] = useState("");
+  const [isPostingEvent, setIsPostingEvent] = useState(false);
+  const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
 
   useEffect(() => {
     async function Verify() {
@@ -44,44 +61,205 @@ export default function EventsPage() {
       if (!response.success) return router.push("/auth/sign-in");
     }
     Verify();
+    async function RetrieveNews() {
+
+      const response = await Fetch_to(json_route.admin.retrieve_news);
+      
+      if (response.success) {
+        const rows = response.data.message;
+        setLatestNews(
+          Array.isArray(rows)
+            ? rows.map((row) => ({
+                id: row.id,
+                locationType: row.locations_type,
+                locationName: row.located_in,
+                description: row.description,
+              }))
+            : []
+        );
+      }
+    }
+    RetrieveNews();
+    async function RetrieveEvents() {
+
+      const response = await Fetch_to(json_route.admin.retrieve_events);
+      
+      if (response.success) {
+        const rows = response.data.message;
+        setUpcomingEvents(
+          Array.isArray(rows)
+            ? rows.map((row) => ({
+                id: row.id,
+                locationType: row.locations_type,
+                locationName: row.located_in,
+                description: row.description,
+                date: row.date
+              }))
+            : []
+        );
+      }
+    }
+    RetrieveEvents();
   }, []);
 
-  const addLatestNews = (event: FormEvent<HTMLFormElement>) => {
+  // Fetch names for the news location dropdown whenever the type changes
+  useEffect(() => {
+    async function fetchNewsLocations() {
+      setNewsLocationId("");
+
+      if (!newsLocationType) {
+        setNewsLocationOptions([]);
+        return;
+      }
+
+      const response = await Fetch_to(json_route.admin.retrieve_location, { category: newsLocationType });
+      if (response.success) {
+        const rows = response.data?.message as LocationOption[] | undefined;
+        setNewsLocationOptions(Array.isArray(rows) ? rows : []);
+      }
+    }
+    fetchNewsLocations();
+  }, [newsLocationType]);
+
+  useEffect(() => {
+    async function fetchEventLocations() {
+      setEventLocationId("");
+
+      if (!eventLocationType) {
+        setEventLocationOptions([]);
+        return;
+      }
+
+      const response = await Fetch_to(json_route.admin.retrieve_location, { category: eventLocationType });
+      if (response.success) {
+        const rows = response.data?.message as LocationOption[] | undefined;
+        setEventLocationOptions(Array.isArray(rows) ? rows : []);
+      }
+    }
+    fetchEventLocations();
+  }, [eventLocationType]);
+
+  const addLatestNews = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setLatestNews((currentNews) => [
-      ...currentNews,
-      {
-        id: Date.now(),
-        locationType: newsLocationType,
+    const selectedLocation = newsLocationOptions.find(
+      (option) => option.id === Number(newsLocationId)
+    );
+
+    if (!selectedLocation) return;
+
+    setIsPostingNews(true);
+
+    try {
+      const response = await Fetch_to(json_route.admin.news, {
+        locations_type: newsLocationType,
+        selected_location_id: selectedLocation.id,
         description: newsDescription,
-      },
-    ]);
-    setNewsDescription("");
+      });
+
+      if (!response.success) {
+        console.error("Post news failed: ", response.message);
+        return;
+      }
+
+      setLatestNews((currentNews) => [
+        {
+          id: response.data.message.id,
+          locationType: newsLocationType,
+          locationName: selectedLocation.name,
+          description: newsDescription,
+        },
+        ...currentNews,
+      ]);
+
+      setNewsDescription("");
+      setNewsLocationId("");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPostingNews(false);
+    }
   };
 
-  const addUpcomingEvent = (event: FormEvent<HTMLFormElement>) => {
+  const addUpcomingEvent = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setUpcomingEvents((currentEvents) => [
-      ...currentEvents,
-      {
-        id: Date.now(),
-        locationType: eventLocationType,
-        date: eventDate,
+    const selectedLocation = eventLocationOptions.find(
+      (option) => option.id === Number(eventLocationId)
+    );
+
+    if (!selectedLocation) return;
+
+    setIsPostingEvent(true);
+
+    try {
+      const response = await Fetch_to(json_route.admin.events, {
+        locations_type: eventLocationType,
+        selected_location_id: selectedLocation.id,
         description: eventDescription,
-      },
-    ]);
-    setEventDate("");
-    setEventDescription("");
+        date: eventDate,
+      });
+
+      if (!response.success) {
+        console.error("Post event failed: ", response.message);
+        return;
+      }
+
+      setUpcomingEvents((currentEvents) => [
+        {
+          id: response.data.message.id,
+          locationType: eventLocationType,
+          locationName: selectedLocation.name,
+          date: eventDate,
+          description: eventDescription,
+        },
+        ...currentEvents,
+      ]);
+
+      setEventDate("");
+      setEventDescription("");
+      setEventLocationId("");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPostingEvent(false);
+    }
+};
+
+  const removeLatestNews = async (id: number) => {
+    setDeletingNewsId(id);
+    try {
+      const response = await Fetch_to(json_route.admin.delete_news, { id });
+
+      if (!response.success) {
+        console.error("Delete news failed: ", response.message);
+        return;
+      }
+
+      setLatestNews((currentNews) => currentNews.filter((news) => news.id !== id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingNewsId(null);
+    }
   };
 
-  const removeLatestNews = (id: number) => {
-    setLatestNews((currentNews) => currentNews.filter((news) => news.id !== id));
-  };
+  const removeUpcomingEvent = async(id: number) => {
+    setDeletingEventId(id);
+    try {
+      const response = await Fetch_to(json_route.admin.delete_events, { id });
 
-  const removeUpcomingEvent = (id: number) => {
-    setUpcomingEvents((currentEvents) => currentEvents.filter((event) => event.id !== id));
+      if (!response.success) {
+        console.error("Delete news failed: ", response.message);
+        return;
+      }
+
+      setLatestNews((currentNews) => currentNews.filter((news) => news.id !== id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingEventId(null);
+    }
   };
 
   return (
@@ -112,9 +290,30 @@ export default function EventsPage() {
                   onChange={(event) => setNewsLocationType(event.target.value)}
                   className="h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                 >
+                  <option value="">Select Locations</option>
                   {locationTypes.map((locationType) => (
                     <option key={locationType} value={locationType}>
                       {locationType}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+                {newsLocationType}
+                <select
+                  required
+                  value={newsLocationId}
+                  onChange={(event) => setNewsLocationId(event.target.value)}
+                  disabled={newsLocationOptions.length === 0}
+                  className="h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {newsLocationOptions.length === 0 ? "No records found" : `Select a ${newsLocationType}`}
+                  </option>
+                  {newsLocationOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
                     </option>
                   ))}
                 </select>
@@ -136,7 +335,7 @@ export default function EventsPage() {
                   type="submit"
                   className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
                 >
-                  Post Latest News
+                  {isPostingNews ? "Posting..." : "Post Latest News"}
                 </button>
               </div>
             </div>
@@ -156,9 +355,30 @@ export default function EventsPage() {
                   onChange={(event) => setEventLocationType(event.target.value)}
                   className="h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                 >
+                  <option value="">Select Locations</option>
                   {locationTypes.map((locationType) => (
                     <option key={locationType} value={locationType}>
                       {locationType}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+                {eventLocationType}
+                <select
+                  required
+                  value={eventLocationId}
+                  onChange={(event) => setEventLocationId(event.target.value)}
+                  disabled={eventLocationOptions.length === 0}
+                  className="h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {eventLocationOptions.length === 0 ? "No records found" : `Select a ${eventLocationType}`}
+                  </option>
+                  {eventLocationOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
                     </option>
                   ))}
                 </select>
@@ -191,7 +411,7 @@ export default function EventsPage() {
                   type="submit"
                   className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
                 >
-                  Post Upcoming Event
+                  {isPostingEvent ? "Posting..." : "Post Upcoming Event"}
                 </button>
               </div>
             </div>
@@ -206,10 +426,11 @@ export default function EventsPage() {
             </div>
 
             <div className="scrollbar-hidden overflow-x-auto">
-              <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[720px] border-collapse text-left text-sm">
                 <thead className="bg-zinc-950 text-xs font-semibold uppercase tracking-wide text-white">
                   <tr>
                     <th className="w-44 px-4 py-3">Location Type</th>
+                    <th className="w-44 px-4 py-3">Located in</th>
                     <th className="w-96 px-4 py-3">Description</th>
                     <th className="w-32 px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -222,6 +443,7 @@ export default function EventsPage() {
                           {news.locationType}
                         </span>
                       </td>
+                      <td className="px-4 py-4 font-semibold text-zinc-950">{news.locationName}</td>
                       <td className="px-4 py-4 text-zinc-700">
                         <p className="line-clamp-4 leading-6">{news.description}</p>
                       </td>
@@ -232,7 +454,7 @@ export default function EventsPage() {
                             onClick={() => removeLatestNews(news.id)}
                             className="h-9 rounded-md bg-red-600 px-3 text-xs font-semibold text-white transition hover:bg-red-700"
                           >
-                            Delete
+                            {deletingNewsId ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       </td>
@@ -256,10 +478,11 @@ export default function EventsPage() {
             </div>
 
             <div className="scrollbar-hidden overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[840px] border-collapse text-left text-sm">
                 <thead className="bg-zinc-950 text-xs font-semibold uppercase tracking-wide text-white">
                   <tr>
                     <th className="w-40 px-4 py-3">Location Type</th>
+                    <th className="w-40 px-4 py-3">Located in</th>
                     <th className="w-36 px-4 py-3">Date</th>
                     <th className="w-96 px-4 py-3">Description</th>
                     <th className="w-32 px-4 py-3 text-right">Actions</th>
@@ -273,6 +496,7 @@ export default function EventsPage() {
                           {event.locationType}
                         </span>
                       </td>
+                      <td className="px-4 py-4 font-semibold text-zinc-950">{event.locationName}</td>
                       <td className="px-4 py-4 font-semibold text-zinc-950">{event.date}</td>
                       <td className="px-4 py-4 text-zinc-700">
                         <p className="line-clamp-4 leading-6">{event.description}</p>
@@ -284,7 +508,7 @@ export default function EventsPage() {
                             onClick={() => removeUpcomingEvent(event.id)}
                             className="h-9 rounded-md bg-red-600 px-3 text-xs font-semibold text-white transition hover:bg-red-700"
                           >
-                            Delete
+                            {deletingEventId ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       </td>
