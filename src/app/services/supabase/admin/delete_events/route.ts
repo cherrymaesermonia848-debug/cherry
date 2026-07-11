@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { error } = await supabaseServer
-      .from("events")
+      .from("event")
       .delete()
       .eq("id", id);
 
