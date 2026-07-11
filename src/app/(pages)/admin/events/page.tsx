@@ -163,9 +163,10 @@ export default function EventsPage() {
 
       if (!response.success) {
         console.error("Post news failed: ", response.message);
-        setDisabled_button(false);
         return;
       }
+
+      setDisabled_button(false);
 
       setLatestNews((currentNews) => [
         {
