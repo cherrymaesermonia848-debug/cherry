@@ -94,6 +94,8 @@ export default function Sign_in() {
             <button
               className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-[#0b6d36] px-7 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#07552a]"
               type="submit"
+              style={{ opacity: loading ? "0.5" : "1" }}
+              disabled={loading}
             >
               {loading ? "Signing...." : "Sign In"}
             </button>

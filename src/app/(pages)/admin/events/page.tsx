@@ -55,6 +55,8 @@ export default function EventsPage() {
   const [isPostingEvent, setIsPostingEvent] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
 
+  const [disabled_button, setDisabled_button] = useState(false);
+
   useEffect(() => {
     async function Verify() {
       const response = await Fetch_to(json_route.jwt.verify);
@@ -150,6 +152,8 @@ export default function EventsPage() {
 
     setIsPostingNews(true);
 
+    setDisabled_button(true);
+
     try {
       const response = await Fetch_to(json_route.admin.news, {
         locations_type: newsLocationType,
@@ -159,6 +163,7 @@ export default function EventsPage() {
 
       if (!response.success) {
         console.error("Post news failed: ", response.message);
+        setDisabled_button(false);
         return;
       }
 
@@ -192,6 +197,8 @@ export default function EventsPage() {
 
     setIsPostingEvent(true);
 
+    setDisabled_button(true);
+
     try {
       const response = await Fetch_to(json_route.admin.events, {
         locations_type: eventLocationType,
@@ -202,6 +209,7 @@ export default function EventsPage() {
 
       if (!response.success) {
         console.error("Post event failed: ", response.message);
+        setDisabled_button(false);
         return;
       }
 
@@ -228,11 +236,13 @@ export default function EventsPage() {
 
   const removeLatestNews = async (id: number) => {
     setDeletingNewsId(id);
+    setDisabled_button(true);
     try {
       const response = await Fetch_to(json_route.admin.delete_news, { id });
 
       if (!response.success) {
         console.error("Delete news failed: ", response.message);
+        setDisabled_button(false);
         return;
       }
 
@@ -246,11 +256,13 @@ export default function EventsPage() {
 
   const removeUpcomingEvent = async(id: number) => {
     setDeletingEventId(id);
+    setDisabled_button(true);
     try {
       const response = await Fetch_to(json_route.admin.delete_events, { id });
 
       if (!response.success) {
         console.error("Delete news failed: ", response.message);
+        setDisabled_button(false);
         return;
       }
 
@@ -333,6 +345,7 @@ export default function EventsPage() {
               <div className="flex justify-end">
                 <button
                   type="submit"
+                  disabled={disabled_button}
                   className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
                 >
                   {isPostingNews ? "Posting..." : "Post Latest News"}
@@ -409,6 +422,7 @@ export default function EventsPage() {
               <div className="flex justify-end">
                 <button
                   type="submit"
+                  disabled={disabled_button}
                   className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
                 >
                   {isPostingEvent ? "Posting..." : "Post Upcoming Event"}
@@ -452,6 +466,7 @@ export default function EventsPage() {
                           <button
                             type="button"
                             onClick={() => removeLatestNews(news.id)}
+                            disabled={disabled_button}
                             className="h-9 rounded-md bg-red-600 px-3 text-xs font-semibold text-white transition hover:bg-red-700"
                           >
                             {deletingNewsId ? "Deleting..." : "Delete"}
@@ -506,6 +521,7 @@ export default function EventsPage() {
                           <button
                             type="button"
                             onClick={() => removeUpcomingEvent(event.id)}
+                            disabled={disabled_button}
                             className="h-9 rounded-md bg-red-600 px-3 text-xs font-semibold text-white transition hover:bg-red-700"
                           >
                             {deletingEventId ? "Deleting..." : "Delete"}

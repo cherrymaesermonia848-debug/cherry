@@ -42,6 +42,8 @@ export default function AddLocationsPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
 
+  const [disabled_button, setDisabled_button] = useState(false);
+
   useEffect(() => {
     async function Verify() {
       const response = await Fetch_to(json_route.jwt.verify);
@@ -108,6 +110,8 @@ export default function AddLocationsPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    setDisabled_button(true);
+
     if (selectedImage === null) {
       setMessage("Please attach an image before adding a location.");
       return;
@@ -127,6 +131,7 @@ export default function AddLocationsPage() {
     if (response.success) {
       const data = response.data as ApiResponseData | null;
       setMessage(data?.message ?? "Location submitted.");
+      setDisabled_button(false);
     } else {
       setMessage(response.message);
     }
@@ -309,6 +314,7 @@ export default function AddLocationsPage() {
           <div className="flex items-end justify-end sm:col-span-2 lg:col-span-1">
             <button
               type="submit"
+              disabled={disabled_button}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 sm:w-auto"
             >
               <span aria-hidden="true" className="text-lg leading-none">+</span>
