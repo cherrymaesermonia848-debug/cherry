@@ -36,7 +36,6 @@ export default function Sign_in() {
       setMessage(response.message);
       setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
