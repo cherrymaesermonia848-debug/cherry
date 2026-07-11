@@ -166,8 +166,6 @@ export default function EventsPage() {
         return;
       }
 
-      setDisabled_button(false);
-
       setLatestNews((currentNews) => [
         {
           id: response.data.message.id,
@@ -184,6 +182,7 @@ export default function EventsPage() {
       console.error(err);
     } finally {
       setIsPostingNews(false);
+      setDisabled_button(false);
     }
   };
 
@@ -210,10 +209,8 @@ export default function EventsPage() {
 
       if (!response.success) {
         console.error("Post event failed: ", response.message);
-        setDisabled_button(false);
         return;
       }
-
       setUpcomingEvents((currentEvents) => [
         {
           id: response.data.message.id,
@@ -232,6 +229,7 @@ export default function EventsPage() {
       console.error(err);
     } finally {
       setIsPostingEvent(false);
+      setDisabled_button(false);
     }
 };
 
@@ -243,15 +241,15 @@ export default function EventsPage() {
 
       if (!response.success) {
         console.error("Delete news failed: ", response.message);
-        setDisabled_button(false);
         return;
       }
-
+      
       setLatestNews((currentNews) => currentNews.filter((news) => news.id !== id));
     } catch (err) {
       console.error(err);
     } finally {
       setDeletingNewsId(null);
+      setDisabled_button(false);
     }
   };
 
@@ -263,15 +261,14 @@ export default function EventsPage() {
 
       if (!response.success) {
         console.error("Delete news failed: ", response.message);
-        setDisabled_button(false);
         return;
       }
-
       setLatestNews((currentNews) => currentNews.filter((news) => news.id !== id));
     } catch (err) {
       console.error(err);
     } finally {
       setDeletingEventId(null);
+      setDisabled_button(false);
     }
   };
 
