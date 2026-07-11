@@ -1,31 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib";
 
-const categoryTableMap: Record<string, string> = {
-  "Barangay": "barangay",
-  "Beaches": "beaches",
-  "Cafe": "cafe",
-  "Heritage": "heritage",
-  "Resort": "resort",
-  "Tourist Spot": "touristspot",
-};
-
-const bucketName = "locations_image";
+const bucketName = "gallery";
 
 export async function POST(req: NextRequest) {
-  const { id, category } = await req.json();
+  const { id } = await req.json();
 
-  const table = categoryTableMap[category];
-
-  if (!table) {
-    return NextResponse.json({ success: false, error: "Category Not Exist" }, { status: 404 });
+  if (!id) {
+    return NextResponse.json({ success: false, error: "Missing id" }, { status: 400 });
   }
 
   try {
-    // 1. Get the image path before the row is gone
     const { data: row, error: fetchError } = await supabaseServer
-      .from(table)
-      .select("image_dir")
+      .from("gallery")
+      .select("src_path")
       .eq("id", id)
       .single();
 
@@ -34,22 +22,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
     }
 
-    // 2. Delete the image from storage, if one exists
-    if (row?.image_dir) {
+    if (row?.src_path) {
       const { error: storageError } = await supabaseServer
         .storage
         .from(bucketName)
-        .remove([row.image_dir]);
+        .remove([row.src_path]);
 
       if (storageError) {
-        // Log it but don't block the row delete on a missing/already-gone file
         console.error("Supabase Storage Delete Error: ", storageError);
       }
     }
 
-    // 3. Delete the row
     const { error: deleteError } = await supabaseServer
-      .from(table)
+      .from("gallery")
       .delete()
       .eq("id", id);
 

@@ -99,6 +99,8 @@ export default function ResourceManager({
   const [pendingDelete, setPendingDelete] = useState<ResourceRecord | null>(null);
   const [lastDeletedRecord, setLastDeletedRecord] = useState<ResourceRecord | null>(null);
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   const openEditForm = (record: ResourceRecord) => {
     setForm({
@@ -115,6 +117,8 @@ export default function ResourceManager({
     });
     setEditingRecord(record);
   };
+
+  
 
   const closeEditForm = () => {
     setEditingRecord(null);
@@ -171,38 +175,41 @@ export default function ResourceManager({
     }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (editingRecord === null) {
-      return;
-    }
+    if (editingRecord === null) return;
 
-    setRecords((currentRecords) =>
-      currentRecords.map((record) => {
-        if (record.id !== editingRecord.id) {
-          return record;
-        }
+    setIsSaving(true);
 
-        return {
-          ...record,
-          ...form,
-        };
-      }),
-    );
+    try {
+      const response = await Fetch_to(json_route.admin.update_location, {
+        id: editingRecord.id,
+        category: title,
+        ...form,
+        transportations: JSON.stringify(form.transportations),
+      });
 
-    setSelectedRecord((currentRecord) => {
-      if (currentRecord?.id !== editingRecord.id) {
-        return currentRecord;
+      if (!response.success) {
+        console.error("Update failed: ", response.message);
+        return;
       }
 
-      return {
-        ...currentRecord,
-        ...form,
-      };
-    });
+      setRecords((currentRecords) =>
+        currentRecords.map((record) =>
+          record.id === editingRecord.id ? { ...record, ...form } : record
+        )
+      );
 
-    closeEditForm();
+      setSelectedRecord((currentRecord) =>
+        currentRecord?.id === editingRecord.id ? { ...currentRecord, ...form } : currentRecord
+      );
+
+      closeEditForm();
+    } finally {
+      setIsSaving(false);
+      setRefresh(!refresh);
+    }
   };
 
   const confirmDeleteRecord = () => {
@@ -273,13 +280,14 @@ export default function ResourceManager({
       
       if (response.success) {
         const data = response.data as RetrieveResponseData | null;
-        setRecords(Array.isArray(data?.message) ? data.message : []);
+        const fetchedRecords = Array.isArray(data?.message) ? data.message : [];
+        setRecords([...fetchedRecords].sort((a, b) => b.id - a.id));
       }
 
       setIsLoading(false);
     }
     Retrieve();
-  }, [title]);
+  }, [title, refresh]);
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950 lg:pl-72">
@@ -496,7 +504,7 @@ export default function ResourceManager({
                   type="submit"
                   className="h-11 rounded-md bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
                 >
-                  Save Changes
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>

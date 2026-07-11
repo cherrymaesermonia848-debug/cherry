@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib";
 
-export async function POST(params: NextRequest) {
-  
-  const { category } = await params.json();
+const categoryTableMap: Record<string, string> = {
+  "Barangay": "barangay",
+  "Beaches": "beaches",
+  "Cafe": "cafe",
+  "Heritage": "heritage",
+  "Resort": "resort",
+  "Tourist Spot": "touristspot",
+};
 
-  if (category === "Barangay") {
+export async function POST(req: NextRequest) {
+  const { category } = await req.json();
+
+  // Single category
+  if (category !== "all") {
+    const table = categoryTableMap[category];
+
+    if (!table) {
+      return NextResponse.json({ success: false, error: "Category Not Exist" }, { status: 404 });
+    }
+
     try {
-
-      const { data, error } = await supabaseServer
-      .from("barangay")
-      .select("*");
+      const { data, error } = await supabaseServer.from(table).select("*");
 
       if (error) {
         console.error("Supabase Query Error: ", error);
@@ -19,7 +31,7 @@ export async function POST(params: NextRequest) {
 
       return NextResponse.json({ success: true, message: data }, { status: 200 });
 
-    } catch(err) {
+    } catch (err) {
       console.error("Unexpected error: ", err);
       return NextResponse.json(
         { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
@@ -28,201 +40,37 @@ export async function POST(params: NextRequest) {
     }
   }
 
-  if (category === "Beaches") {
-    try {
+  // All categories: counts only, fetched in parallel
+  try {
+    const entries = Object.entries(categoryTableMap);
 
-      const { data, error } = await supabaseServer
-      .from("beaches")
-      .select("*");
+    const results = await Promise.all(
+      entries.map(([, table]) =>
+        supabaseServer.from(table).select("*", { count: "exact", head: true })
+      )
+    );
+
+    const counts: Record<string, number> = {};
+
+    for (let i = 0; i < entries.length; i++) {
+      const [, table] = entries[i];
+      const { count, error } = results[i];
 
       if (error) {
-        console.error("Supabase Query Error: ", error);
+        console.error(`Supabase Query Error (${table}): `, error);
         return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
       }
 
-      return NextResponse.json({ success: true, message: data }, { status: 200 });
-
-    } catch(err) {
-      console.error("Unexpected error: ", err);
-      return NextResponse.json(
-        { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
-        { status: 500 }
-      );
+      counts[table] = count ?? 0;
     }
+
+    return NextResponse.json({ success: true, message: counts }, { status: 200 });
+
+  } catch (err) {
+    console.error("Unexpected error: ", err);
+    return NextResponse.json(
+      { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
+      { status: 500 }
+    );
   }
-
-  if (category === "Cafe") {
-    try {
-
-      const { data, error } = await supabaseServer
-      .from("cafe")
-      .select("*");
-
-      if (error) {
-        console.error("Supabase Query Error: ", error);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: data }, { status: 200 });
-
-    } catch(err) {
-      console.error("Unexpected error: ", err);
-      return NextResponse.json(
-        { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  }
-
-  if (category === "Heritage") {
-    try {
-
-      const { data, error } = await supabaseServer
-      .from("heritage")
-      .select("*");
-
-      if (error) {
-        console.error("Supabase Query Error: ", error);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: data }, { status: 200 });
-
-    } catch(err) {
-      console.error("Unexpected error: ", err);
-      return NextResponse.json(
-        { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  }
-
-  if (category === "Resort") {
-    try {
-
-      const { data, error } = await supabaseServer
-      .from("resort")
-      .select("*");
-
-      if (error) {
-        console.error("Supabase Query Error: ", error);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: data }, { status: 200 });
-
-    } catch(err) {
-      console.error("Unexpected error: ", err);
-      return NextResponse.json(
-        { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  }
-
-  if (category === "Tourist Spot") {
-    try {
-
-      const { data, error } = await supabaseServer
-      .from("touristspot")
-      .select("*");
-
-      if (error) {
-        console.error("Supabase Query Error: ", error);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: data }, { status: 200 });
-
-    } catch(err) {
-      console.error("Unexpected error: ", err);
-      return NextResponse.json(
-        { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  }
-
-  if (category === "all") {
-     try {
-
-      const { data: barangay, error: barangayErr } = await supabaseServer
-      .from("barangay")
-      .select("*");
-
-      if (barangayErr) {
-        console.error("Supabase Query Error: ", barangayErr);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      const { data: beaches, error: beachesErr } = await supabaseServer
-      .from("beaches")
-      .select("*");
-
-      if (beachesErr) {
-        console.error("Supabase Query Error: ", beachesErr);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      const { data: cafe, error: cafeErr } = await supabaseServer
-      .from("cafe")
-      .select("*");
-
-      if (cafeErr) {
-        console.error("Supabase Query Error: ", cafeErr);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      const { data: heritage, error: heritageErr } = await supabaseServer
-      .from("heritage")
-      .select("*");
-
-      if (heritageErr) {
-        console.error("Supabase Query Error: ", heritageErr);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      const { data: resort, error: resortErr } = await supabaseServer
-      .from("resort")
-      .select("*");
-
-      if (resortErr) {
-        console.error("Supabase Query Error: ", resortErr);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      const { data: touristspot, error: touristspotErr } = await supabaseServer
-      .from("touristspot")
-      .select("*");
-
-      if (touristspotErr) {
-        console.error("Supabase Query Error: ", touristspotErr);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-      }
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: {
-            barangay: barangay.length,
-            beaches: beaches.length,
-            cafe: cafe.length,
-            heritage: heritage.length,
-            resort: resort.length,
-            touristspot: touristspot.length,
-          }
-        },
-        { status: 200 }
-      );
-
-    } catch(err) {
-      console.error("Unexpected error: ", err);
-      return NextResponse.json(
-        { success: false, error: err instanceof Error ? err.message : "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  }
-
-  return NextResponse.json({ success: false, error: "Category Not Exsit" }, { status: 404 });
 }
