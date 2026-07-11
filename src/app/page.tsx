@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent, useRef } from "react";
 import json_route from "@/config/json_route.json";
 import { Fetch_to } from "@/utilities";
+import Image from "next/image";
 
 type Transportation = {
   type: string;
@@ -545,31 +546,34 @@ export default function Home() {
           >
             <div className="flex items-center justify-between gap-4">
               <a className="flex min-w-0 items-center gap-3 sm:gap-4" href="#home" aria-label="Municipality of Pontevedra">
-              <span className={`grid shrink-0 place-items-center rounded-full border-[3px] border-[#bb3338] bg-white shadow-sm transition-all duration-300 ${
-                isHeaderCompact ? "size-12 sm:size-14" : "size-16 sm:size-20 lg:size-18 xl:size-20"
-              }`}
-              >
-                <span className={`grid place-items-center rounded-full border-2 border-[#0b6d36] font-black text-[#0b6d36] transition-all duration-300 ${
-                  isHeaderCompact ? "size-8 text-[9px] sm:size-9" : "size-11 text-[10px] sm:size-14 lg:size-12 xl:size-14"
-                }`}
+                <span
+                  className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-[#bb3338] bg-white shadow-sm transition-all duration-300 ${
+                    isHeaderCompact ? "size-12 sm:size-14" : "size-16 sm:size-20 lg:size-18 xl:size-20"
+                  }`}
                 >
-                  SH
+                  <Image
+                    src="/logo.png"
+                    alt="Municipality of Pontevedra seal"
+                    fill
+                    sizes="80px"
+                    className="object-contain p-1.5"
+                    priority
+                  />
                 </span>
-              </span>
-              <span className="min-w-0">
-                <span className={`block truncate font-black leading-none tracking-wide text-[#087238] transition-all duration-300 ${
-                  isHeaderCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl lg:text-2xl xl:text-3xl"
-                }`}
-                >
-                  PONTEVEDRA
+                <span className="min-w-0">
+                  <span className={`block truncate font-black leading-none tracking-wide text-[#087238] transition-all duration-300 ${
+                    isHeaderCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl lg:text-2xl xl:text-3xl"
+                  }`}
+                  >
+                    PONTEVEDRA
+                  </span>
+                  <span className={`mt-1 truncate leading-none text-[#5f5f5f] transition-all duration-300 ${
+                    isHeaderCompact ? "hidden sm:block sm:text-xs" : "block text-sm sm:text-base xl:text-lg"
+                  }`}
+                  >
+                    City of Gentle People
+                  </span>
                 </span>
-                <span className={`mt-1 truncate leading-none text-[#5f5f5f] transition-all duration-300 ${
-                  isHeaderCompact ? "hidden sm:block sm:text-xs" : "block text-sm sm:text-base xl:text-lg"
-                }`}
-                >
-                  City of Gentle People
-                </span>
-              </span>
               </a>
 
               <button
@@ -1105,10 +1109,14 @@ export default function Home() {
           <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-2 lg:grid-cols-[1.35fr_.8fr_.9fr_1fr]">
             <div>
               <a className="flex items-center gap-4" href="#home" aria-label="Municipality of Pontevedra footer home">
-                <span className="grid size-16 shrink-0 place-items-center rounded-full border-4 border-[#bb3338] bg-white">
-                  <span className="grid size-10 place-items-center rounded-full border-2 border-[#0b6d36] text-[10px] font-black text-[#0b6d36]">
-                    SH
-                  </span>
+                <span className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-[#bb3338] bg-white">
+                  <Image
+                    src="/logo.png"
+                    alt="Municipality of Pontevedra seal"
+                    width={56}
+                    height={56}
+                    className="object-contain p-1"
+                  />
                 </span>
                 <span>
                   <span className="block text-2xl font-black leading-none text-white">PONTEVEDRA</span>
