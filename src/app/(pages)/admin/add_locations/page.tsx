@@ -24,6 +24,8 @@ const locationTypes = [
   "Tourist Spot",
 ];
 
+const MAX_IMAGES = 5;
+
 const emptyForm = {
   category: locationTypes[0],
   name: "",
@@ -32,15 +34,15 @@ const emptyForm = {
   gmail: "",
   transportations: [{ type: "", description: "" }] as Transportation[],
   about: "",
-  image_src: "",
   iframe_link: "",
 };
 
 export default function AddLocationsPage() {
   const router = useRouter();
   const [form, setForm] = useState(emptyForm);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [message, setMessage] = useState("");
+  const [imageError, setImageError] = useState("");
 
   const [disabled_button, setDisabled_button] = useState(false);
 
@@ -102,22 +104,40 @@ export default function AddLocationsPage() {
     }));
   };
 
-  const handleImageUpload = (file: File | null) => {
-    setSelectedImage(file);
-    updateField("image_src", file?.name ?? "");
+  const handleImageUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const incoming = Array.from(files);
+
+    setSelectedImages((current) => {
+      const combined = [...current, ...incoming];
+
+      if (combined.length > MAX_IMAGES) {
+        setImageError(`You can only upload up to ${MAX_IMAGES} images.`);
+        return combined.slice(0, MAX_IMAGES);
+      }
+
+      setImageError("");
+      return combined;
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages((current) => current.filter((_, currentIndex) => currentIndex !== index));
+    setImageError("");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setDisabled_button(true);
-
-    if (selectedImage === null) {
-      setMessage("Please attach an image before adding a location.");
+    if (selectedImages.length === 0) {
+      setMessage("Please attach at least one image before adding a location.");
       return;
     }
 
-    const response = await Fetch_toFile(json_route.admin.add_location, selectedImage, {
+    setDisabled_button(true);
+
+    const response = await Fetch_toFile(json_route.admin.add_location, selectedImages, {
       category: form.category,
       name: form.name,
       locations: form.address,
@@ -134,6 +154,7 @@ export default function AddLocationsPage() {
       setDisabled_button(false);
     } else {
       setMessage(response.message);
+      setDisabled_button(false);
     }
   };
 
@@ -292,26 +313,62 @@ export default function AddLocationsPage() {
             />
           </label>
 
-          <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2">
-            Image Upload
-            <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-center transition hover:border-teal-600 hover:bg-teal-50">
+          <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2 lg:col-span-3">
+            Image Upload ({selectedImages.length}/{MAX_IMAGES})
+            <label
+              className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-md border border-dashed px-3 py-4 text-center transition ${
+                selectedImages.length >= MAX_IMAGES
+                  ? "cursor-not-allowed border-zinc-200 bg-zinc-100 opacity-60"
+                  : "cursor-pointer border-zinc-300 bg-zinc-50 hover:border-teal-600 hover:bg-teal-50"
+              }`}
+            >
               <span className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white">
-                Upload Image
+                Upload Images
               </span>
               <span className="max-w-full break-words text-xs font-normal text-zinc-600">
-                {form.image_src || "Choose an image from your device"}
+                {selectedImages.length === 0
+                  ? "Choose up to 5 images from your device"
+                  : "Add more images"}
               </span>
               <input
-                required={form.image_src.length === 0}
                 type="file"
                 accept="image/*"
-                onChange={(event) => handleImageUpload(event.target.files?.[0] ?? null)}
+                multiple
+                disabled={selectedImages.length >= MAX_IMAGES}
+                onChange={(event) => {
+                  handleImageUpload(event.target.files);
+                  event.target.value = "";
+                }}
                 className="sr-only"
               />
             </label>
+
+            {imageError ? (
+              <span className="text-xs font-normal text-red-600">{imageError}</span>
+            ) : null}
+
+            {selectedImages.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {selectedImages.map((file, index) => (
+                  <li
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-normal text-zinc-700"
+                  >
+                    <span className="truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="ml-3 shrink-0 font-semibold text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
 
-          <div className="flex items-end justify-end sm:col-span-2 lg:col-span-1">
+          <div className="flex items-end justify-end sm:col-span-2 lg:col-span-3">
             <button
               type="submit"
               disabled={disabled_button}

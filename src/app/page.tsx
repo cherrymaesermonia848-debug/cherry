@@ -15,7 +15,7 @@ type Destination = {
   name: string;
   location: string;
   description: string;
-  image: string;
+  images: string[];
   iframeLink: string;
   facebookPage: string;
   gmail: string;
@@ -180,6 +180,33 @@ const visitorLinks = [
   ["Location Map", "#stay"],
 ];
 
+function FadeImage({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onLoad={() => setLoaded(true)}
+      className={`transition-opacity duration-500 ease-in-out ${
+        loaded ? "opacity-100" : "opacity-0"
+      } ${className ?? ""}`}
+    />
+  );
+}
+
 export default function Home() {
   const [placeIndex, setPlaceIndex] = useState(0);
   const [now, setNow] = useState<Date | null>(null);
@@ -203,6 +230,7 @@ export default function Home() {
   const skipMapResetRef = useRef(false);
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
   const [selectedMapId, setSelectedMapId] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const defaultMapSource = `https://www.google.com/maps?q=${encodeURIComponent("Pontevedra, Capiz, Philippines")}&output=embed`;
 
   const mapCategoryDestinationMap: Record<string, Destination[]> = {
@@ -212,6 +240,27 @@ export default function Home() {
     "Heritage": heritageDestinations,
     "Resort": resortDestinations,
     "Tourist Spot": touristDestinations,
+  };
+
+  const parseImages = (raw: unknown): string[] => {
+    if (Array.isArray(raw)) {
+      return raw.filter((item): item is string => typeof item === "string" && item.length > 0);
+    }
+
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string" && item.length > 0);
+      }
+    } catch {
+      // not JSON, treat as a single legacy URL
+    }
+
+    return [raw];
   };
 
   const mapCategoryOptions = selectedMapCategory
@@ -229,12 +278,12 @@ export default function Home() {
   const selectedMapSource = selectedMapDestination?.iframeLink || defaultMapSource;
 
   const categoryPreviewImageMap: Record<string, string> = {
-    "Beaches": beachDestinations[0]?.image ?? "",
-    "Resort": resortDestinations[0]?.image ?? "",
-    "Barangay": barangayDestinations[0]?.image ?? "",
-    "Cafe": cafeDestinations[0]?.image ?? "",
-    "Heritage": heritageDestinations[0]?.image ?? "",
-    "Tourist Spot": touristDestinations[0]?.image ?? "",
+    "Beaches": beachDestinations[0]?.images[0] ?? "",
+    "Resort": resortDestinations[0]?.images[0] ?? "",
+    "Barangay": barangayDestinations[0]?.images[0] ?? "",
+    "Cafe": cafeDestinations[0]?.images[0] ?? "",
+    "Heritage": heritageDestinations[0]?.images[0] ?? "",
+    "Tourist Spot": touristDestinations[0]?.images[0] ?? "",
   };
 
   const newsCategoryColumnMap: Record<string, string> = {
@@ -288,7 +337,7 @@ export default function Home() {
                   name: (row.name as string) ?? "",
                   location: (row.locations as string) ?? "",
                   description: (row.about as string) ?? "",
-                  image: typeof row.image_src === "string" ? row.image_src : "",
+                  images: parseImages(row.image_src),
                   iframeLink: (row.iframe_link as string) ?? "",
                   facebookPage: (row.facebook_page as string) ?? "",
                   gmail: (row.gmail as string) ?? "",
@@ -404,8 +453,21 @@ export default function Home() {
     setExpandedSections((current) => ({ ...current, [id]: !current[id] }));
   };
   const openDestinationDetails = (item: Destination, category: string) => {
-    console.log("Full item clicked:", item);
     setSelectedDestination({ ...item, category });
+    setActiveImageIndex(0);
+  };
+  const showPrevImage = () => {
+    if (!selectedDestination) return;
+    setActiveImageIndex((current) =>
+      current === 0 ? selectedDestination.images.length - 1 : current - 1
+    );
+  };
+
+  const showNextImage = () => {
+    if (!selectedDestination) return;
+    setActiveImageIndex((current) =>
+      current === selectedDestination.images.length - 1 ? 0 : current + 1
+    );
   };
   const closeDestinationDetails = () => setSelectedDestination(null);
   const destinationSections = [
@@ -656,8 +718,8 @@ export default function Home() {
                           }}
                           className="flex w-full items-center gap-3 border-b border-[#f0f0f0] px-4 py-3 text-left transition last:border-b-0 hover:bg-[#f1f7f3]"
                         >
-                          {item.image ? (
-                            <img src={item.image} alt={item.name} className="h-10 w-10 shrink-0 rounded object-cover" />
+                          {item.images[0] ? (
+                            <FadeImage src={item.images[0]} alt={item.name} className="h-10 w-10 shrink-0 rounded object-cover" />
                           ) : (
                             <span className="h-10 w-10 shrink-0 rounded bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
                           )}
@@ -700,10 +762,10 @@ export default function Home() {
                 Explore Now
               </a>
               <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/auth/sign-in">
-                Sign In
+                Login as Admin
               </a>
-              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/auth/sign-up">
-                Create Account
+              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/request">
+                Request Add Locations
               </a>
             </div>
             <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-[#f2f8f5]">
@@ -803,8 +865,8 @@ export default function Home() {
               <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visibleItems.map((item) => (
                   <article className="overflow-hidden border border-[#e2e8e4] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" key={item.name}>
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="h-52 w-full object-cover" />
+                    {item.images[0] ? (
+                      <FadeImage src={item.images[0]} alt={item.name} className="h-52 w-full object-cover" />
                     ) : (
                       <div className="h-52 bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
                     )}
@@ -975,16 +1037,64 @@ export default function Home() {
       {selectedDestination && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5 py-8" role="dialog" aria-modal="true" aria-labelledby="destination-title">
           <div className="max-h-full w-full max-w-4xl overflow-y-auto bg-white shadow-2xl">
-            {selectedDestination.image ? (
-              <img
-                src={selectedDestination.image}
-                alt={selectedDestination.name}
-                className="h-56 w-full object-cover"
-              />
-            ) : (
-              <div className="h-56 bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
-            )}
-            <div className="p-6 sm:p-8">
+              {selectedDestination.images.length > 0 ? (
+                <>
+                  <div className="relative h-56 w-full overflow-hidden sm:h-72">
+                    <FadeImage
+                      src={selectedDestination.images[activeImageIndex] ?? selectedDestination.images[0]}
+                      alt={selectedDestination.name}
+                      className="h-full w-full object-cover"
+                    />
+
+                    {selectedDestination.images.length > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={showPrevImage}
+                          aria-label="Previous image"
+                          className="absolute left-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-xl font-black text-white transition hover:bg-black/70"
+                        >
+                          &lt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={showNextImage}
+                          aria-label="Next image"
+                          className="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-xl font-black text-white transition hover:bg-black/70"
+                        >
+                          &gt;
+                        </button>
+                        <span className="absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs font-bold text-white">
+                          {activeImageIndex + 1} / {selectedDestination.images.length}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+
+                  {selectedDestination.images.length > 1 ? (
+                    <div className="flex gap-2 overflow-x-auto bg-[#f7f7f7] px-4 py-3">
+                      {selectedDestination.images.map((src, index) => (
+                        <button
+                          key={src + index}
+                          type="button"
+                          onClick={() => setActiveImageIndex(index)}
+                          className={`h-16 w-20 shrink-0 overflow-hidden rounded border-2 transition ${
+                            index === activeImageIndex
+                              ? "border-[#0b6d36]"
+                              : "border-transparent opacity-70 hover:opacity-100"
+                          }`}
+                        >
+                          <FadeImage src={src} alt={`${selectedDestination.name} photo ${index + 1}`} className="h-full w-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div className="h-56 bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]" />
+              )}
+
+              <div className="p-6 sm:p-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0b6d36]">
