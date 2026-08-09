@@ -83,6 +83,14 @@ const menuItems = [
       ["Travel Guide", "#footer"],
     ],
   },
+  {
+    label: "More",
+    href: "#",
+    links: [
+      ["Admin Sign in", "/auth/sign-in"],
+      ["Request Location", "/request"],
+    ],
+  },
 ];
 
 const places = [
@@ -582,88 +590,46 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white text-[#2f2f2f]">
       <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="bg-[#0a7137] px-5 text-white lg:px-10 xl:px-20">
-          <div className="mx-auto flex min-h-12 max-w-7xl flex-col justify-center gap-2 py-2 text-sm font-bold sm:flex-row sm:items-center sm:justify-between sm:py-0">
-            <p className="whitespace-nowrap">Republic of the Philippines</p>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] sm:justify-end">
-              <a href="#news" className="transition hover:text-[#d8f3df]">Travel Updates</a>
-              <a href="#events" className="transition hover:text-[#d8f3df]">Events</a>
-              <a href="#gallery" className="transition hover:text-[#d8f3df]">Gallery</a>
-              <span className="font-black" aria-label="Facebook">f</span>
-              <span className="font-black" aria-label="Instagram">IG</span>
-              <span className="font-black" aria-label="YouTube">YT</span>
-              <p className="hidden whitespace-nowrap lg:block">
-                {now
-                  ? `${now.toLocaleDateString()} | ${now.toLocaleTimeString()}`
-                  : "Loading date | Loading time"}
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Top nav bar - white, holds the menu, search, and mobile toggle */}
+        <div className="border-b border-[#e8e8e8] px-5 lg:px-10 xl:px-20">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-3">
+            <a
+              href="#home"
+              className="text-base font-black uppercase tracking-wide text-[#161616]"
+              aria-label="Home"
+            >
+              LGU
+            </a>
 
-        <nav className="px-5 transition-all duration-300 lg:px-10 xl:px-20" aria-label="Main navigation">
-          <div className={`mx-auto grid max-w-7xl gap-5 transition-all duration-300 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-center xl:grid-cols-[330px_minmax(0,1fr)] ${
-            isHeaderCompact ? "py-2" : "py-4 lg:py-6"
-          }`}
-          >
-            <div className="flex items-center justify-between gap-4">
-              <a className="flex min-w-0 items-center gap-3 sm:gap-4" href="#home" aria-label="Municipality of Pontevedra">
-                <span
-                  className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-[#bb3338] bg-white shadow-sm transition-all duration-300 ${
-                    isHeaderCompact ? "size-12 sm:size-14" : "size-16 sm:size-20 lg:size-18 xl:size-20"
-                  }`}
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="Municipality of Pontevedra seal"
-                    fill
-                    sizes="80px"
-                    className="object-contain p-1.5"
-                    priority
-                  />
-                </span>
-                <span className="min-w-0">
-                  <span className={`block truncate font-black leading-none tracking-wide text-[#087238] transition-all duration-300 ${
-                    isHeaderCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl lg:text-2xl xl:text-3xl"
-                  }`}
-                  >
-                    PONTEVEDRA
-                  </span>
-                  <span className={`mt-1 truncate leading-none text-[#5f5f5f] transition-all duration-300 ${
-                    isHeaderCompact ? "hidden sm:block sm:text-xs" : "block text-sm sm:text-base xl:text-lg"
-                  }`}
-                  >
-                    City of Gentle People
-                  </span>
-                </span>
-              </a>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((currentValue) => !currentValue)}
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-[#d8d8d8] text-[#0b6d36] transition hover:bg-[#f1f7f3] lg:hidden"
+              aria-label="Toggle main navigation"
+              aria-expanded={isMobileMenuOpen}
+            >
+              <span className="flex flex-col gap-1.5">
+                <span className="block h-0.5 w-5 rounded bg-current" />
+                <span className="block h-0.5 w-5 rounded bg-current" />
+                <span className="block h-0.5 w-5 rounded bg-current" />
+              </span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setIsMobileMenuOpen((currentValue) => !currentValue)}
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-[#d8d8d8] text-[#0b6d36] transition hover:bg-[#f1f7f3] lg:hidden"
-                aria-label="Toggle main navigation"
-                aria-expanded={isMobileMenuOpen}
-              >
-                <span className="flex flex-col gap-1.5">
-                  <span className="block h-0.5 w-5 rounded bg-current" />
-                  <span className="block h-0.5 w-5 rounded bg-current" />
-                  <span className="block h-0.5 w-5 rounded bg-current" />
-                </span>
-              </button>
-            </div>
-
-            <div className={`${isMobileMenuOpen ? "grid" : "hidden"} min-w-0 gap-4 lg:grid xl:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] xl:items-center`}>
-              <ul className="flex min-w-0 flex-col gap-2 text-[16px] text-[#242424] lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-2 lg:gap-y-2 lg:justify-start xl:flex-nowrap xl:text-[16px] 2xl:gap-x-4">
+            <div
+              className={`${
+                isMobileMenuOpen ? "flex" : "hidden"
+              } w-full flex-col gap-4 lg:flex lg:w-auto lg:flex-row lg:items-center lg:gap-6`}
+            >
+              <ul className="flex flex-col gap-1 text-[15px] text-[#242424] lg:flex-row lg:items-center lg:gap-1">
                 {menuItems.map((item) => (
                   <li className="group relative" key={item.label}>
                     <a
-                      className="flex h-10 items-center justify-between gap-2 rounded-sm px-3 font-medium transition hover:bg-[#f1f7f3] hover:text-[#0b6d36] lg:justify-start lg:px-2"
+                      className="flex h-10 items-center justify-between gap-2 rounded-sm px-3 font-semibold transition hover:bg-[#f1f7f3] hover:text-[#0b6d36] lg:justify-start lg:px-2"
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span className="whitespace-nowrap">{item.label}</span>
-                      <span className="text-[11px] leading-none text-[#0b6d36]">v</span>
+                      <span className="text-[10px] leading-none text-[#0b6d36]">▾</span>
                     </a>
                     <ul className="grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:invisible lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:opacity-0 lg:shadow-xl lg:transition lg:group-hover:visible lg:group-hover:opacity-100">
                       {item.links.map(([label, href]) => (
@@ -682,9 +648,9 @@ export default function Home() {
                 ))}
               </ul>
 
-              <div className="relative w-full xl:justify-self-end">
+              <div className="relative w-full lg:w-64">
                 <form
-                  className="flex h-12 w-full min-w-0 max-w-full border border-[#d8d8d8] bg-white"
+                  className="flex h-11 w-full min-w-0 border border-[#d8d8d8] bg-white"
                   onSubmit={handleSearchSubmit}
                 >
                   <label className="sr-only" htmlFor="search">
@@ -692,7 +658,7 @@ export default function Home() {
                   </label>
                   <input
                     id="search"
-                    className="min-w-0 flex-1 px-3 text-base text-[#222222] outline-none placeholder:text-[#8b8f94] sm:px-4"
+                    className="min-w-0 flex-1 px-3 text-sm text-[#222222] outline-none placeholder:text-[#8b8f94]"
                     type="text"
                     placeholder="Search destinations"
                     value={searchQuery}
@@ -700,7 +666,7 @@ export default function Home() {
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => window.setTimeout(() => setIsSearchFocused(false), 150)}
                   />
-                  <button className="w-14 shrink-0 bg-[#0b6d36] text-sm font-black text-white transition hover:bg-[#07552a] sm:w-16" type="submit">
+                  <button className="w-12 shrink-0 bg-[#0b6d36] text-sm font-black text-white transition hover:bg-[#07552a]" type="submit">
                     Go
                   </button>
                 </form>
@@ -737,42 +703,87 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </nav>
-      </header>
+        </div>
 
-      <section id="home" className="relative isolate min-h-[690px] overflow-hidden">
-        <div className="absolute inset-0 -z-30 bg-gradient-to-br from-[#1b3328] via-[#879296] to-[#b6bec0]" />
-        <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(0,0,0,.74)_0%,rgba(0,0,0,.5)_40%,rgba(0,0,0,.16)_100%)]" />
-        <div className="absolute -left-20 top-0 -z-10 h-full w-1/2 bg-[radial-gradient(ellipse_at_30%_20%,rgba(6,20,9,.98)_0_9%,transparent_10%),radial-gradient(ellipse_at_45%_42%,rgba(7,27,11,.96)_0_7%,transparent_8%),radial-gradient(ellipse_at_22%_72%,rgba(8,18,10,.95)_0_13%,transparent_14%)]" />
-        <div className="absolute bottom-0 left-0 right-0 -z-10 h-44 bg-[linear-gradient(7deg,rgba(12,20,15,.92)_0_24%,transparent_25%)]" />
+        {/* Banner - colored, holds seal, title, tagline, and the live clock. Shrinks on scroll. */}
+        <div
+          className={`bg-[#0a7137] px-5 text-white transition-all duration-300 lg:px-10 xl:px-20 ${
+            isHeaderCompact ? "py-2 sm:py-3" : "py-6"
+          }`}
+        >
+          <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <a className="flex items-center gap-4 sm:gap-5" href="#home" aria-label="Municipality of Pontevedra">
+              <span
+                className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-[#bb3338] bg-white shadow-sm transition-all duration-300 ${
+                  isHeaderCompact ? "size-11 sm:size-12" : "size-20 sm:size-24"
+                }`}
+              >
+                <Image
+                  src="/logo.png"
+                  alt="Municipality of Pontevedra seal"
+                  fill
+                  sizes="96px"
+                  className="object-contain p-1.5"
+                  priority
+                />
+              </span>
+              <span className="min-w-0">
+                <span
+                  className={`inline-block border-b border-white/50 pb-1 font-bold transition-all duration-300 ${
+                    isHeaderCompact ? "hidden text-xs sm:inline-block" : "text-sm"
+                  }`}
+                >
+                  Republic of the Philippines
+                </span>
+                <span
+                  className={`block font-black leading-none tracking-wide transition-all duration-300 ${
+                    isHeaderCompact ? "mt-0 text-xl sm:text-2xl" : "mt-2 text-4xl sm:text-5xl"
+                  }`}
+                >
+                  PONTEVEDRA
+                </span>
+                <span
+                  className={`block font-semibold text-[#d8f3df] transition-all duration-300 ${
+                    isHeaderCompact ? "hidden" : "mt-2 text-base sm:text-lg"
+                  }`}
+                >
+                  City of Gentle People
+                </span>
+              </span>
+            </a>
 
-        <div className="mx-auto flex min-h-[690px] max-w-7xl items-center px-5 py-24 lg:px-20">
-          <div className="max-w-4xl text-white">
-            <h3 className="text-5xl font-black sm:text-6xl">Discover</h3>
-            <h1 className="mt-7 text-6xl font-black leading-[.9] tracking-wide sm:text-8xl lg:text-[104px]">
-              PONTEVEDRA
-            </h1>
-            <h2 className="mt-7 text-2xl font-black sm:text-3xl">The Heart of Pontevedra</h2>
-            <p className="mt-6 max-w-3xl text-xl font-semibold leading-9">
-              Explore the beauty of Pontevedra, from pristine beaches to natural
-              wonders and rich cultural heritage.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <a className="inline-flex rounded-full bg-[#0b8c47] px-11 py-5 text-xl font-bold hover:bg-[#08733a]" href="#explore">
-                Explore Now
-              </a>
-              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/auth/sign-in">
-                Login as Admin
-              </a>
-              <a className="inline-flex rounded-full border border-white/70 px-9 py-5 text-lg font-bold text-white hover:bg-white/10" href="/request">
-                Request Add Locations
-              </a>
+            <div className="text-left text-sm sm:text-right sm:text-base">
+              <p className={`font-bold transition-all duration-300 ${isHeaderCompact ? "hidden sm:block sm:text-xs" : ""}`}>
+                Philippine Standard Time:
+              </p>
+              <p
+                className={`mt-1 font-semibold text-[#d8f3df] transition-all duration-300 ${
+                  isHeaderCompact ? "text-xs sm:text-sm" : ""
+                }`}
+              >
+                {now
+                  ? `${now.toLocaleDateString(undefined, {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "2-digit",
+                    })}, ${now.toLocaleTimeString()}`
+                  : "Loading date | Loading time"}
+              </p>
             </div>
-            <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-[#f2f8f5]">
-              Visitors can request tourism help, submit a place for review, and explore featured destinations in one place.
-            </p>
           </div>
         </div>
+      </header>
+
+      <section id="home" className="relative isolate h-[70vh] min-h-[420px] w-full overflow-hidden sm:h-[80vh] lg:h-screen">
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src="/hero-video.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
       </section>
 
       {infoSections.map(([id, title, text]) => (
