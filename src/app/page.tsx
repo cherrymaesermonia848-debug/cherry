@@ -139,7 +139,7 @@ const places = [
 ];
 
 const infoSections = [
-  ["about", "ABOUT PONTEVEDRA", "Pontevedra is a beautiful municipality in Capiz known for its culture, history, and tourism destinations."],
+  ["about", "ABOUT PONTEVEDRA", "Pontevedra is a beautiful municipality of Pontevedra known for its culture, history, and tourism destinations."],
   ["history", "History of Pontevedra", "Discover local stories, historical landmarks, and places that shaped the municipality."],
   ["culture", "Culture & Lifestyle", "Experience warm community life, local traditions, food, festivals, and heritage routes."],
   ["festival", "Festivals", "Celebrate Kasalag Festival and other events that bring Pontevedra culture to life."],
