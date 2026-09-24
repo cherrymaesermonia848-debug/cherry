@@ -13,7 +13,10 @@
     "retrieve_news" : "/services/supabase/admin/retrieve_news",
     "delete_news" : "/services/supabase/admin/delete_news",
     "retrieve_events" : "/services/supabase/admin/retrieve_events",
-    "delete_events" : "/services/supabase/admin/delete_events"
+    "delete_events" : "/services/supabase/admin/delete_events",
+    "retrieve_request" : "/services/supabase/admin/retrieve_request",
+    "update_request" : "/services/supabase/admin/update_request",
+    "delete_request" : "/services/supabase/admin/delete_request"
   },
   "auth" : {
     "signin" : "/services/supabase/auth/signin"
@@ -22,5 +25,6 @@
     "auth" : "/services/jwt/auth",
     "verify" : "/services/jwt/verify",
     "deauth" : "/services/jwt/deauth"
-  }
+  },
+  "request_address" : "/services/request_address"
 }

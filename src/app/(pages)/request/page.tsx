@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import api_route from "@/config/json_route.json";
+import { Fetch_to } from "@/utilities";
 
 export default function Sign_up_page() {
   const [email, setEmail] = useState("");
@@ -12,9 +14,19 @@ export default function Sign_up_page() {
     event.preventDefault();
     setDisabled_button(true);
 
-    // TODO: hook this up later
-    setMessage("Request submitted. Thank you!");
+    const response = await Fetch_to(api_route.request_address, { requested_by: email, address: address });
+
+    if (response.success) {
+      // TODO: hook this up later
+      setMessage(response.message);
+      setAddress("");
+      setEmail("");
+    } else {
+      setMessage(response.message);
+    }
+
     setDisabled_button(false);
+    
   };
 
   return (
