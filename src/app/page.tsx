@@ -140,7 +140,7 @@ const places = [
 
 const infoSections = [
   ["about", "ABOUT PONTEVEDRA", "Pontevedra is a beautiful municipality of Pontevedra known for its culture, history, and tourism destinations."],
-  ["history", "History of Pontevedra", "Discover local stories, historical landmarks, and places that shaped the municipality."],
+  ["history", "History of Pontevedra", "Pontevedra derived its name from the city of Pontevedra in the Galicia Region of Spain. This claim is supported by archival materials housed in Spanish archives and various European public libraries, which confirm the Iberian origin of the name. When Spanish colonizers began settling the Island of Buglas (the former name of Negros) they are believed to have named the town after their place of origin in Spain, a gesture rooted in nostalgia and remembrance of their homeland. Over time, many of these settlers chose to remain permanently, contributing to the introduction of Spanish and European cultural traditions, governance systems, and most notably, the Christian faith."]
   ["culture", "Culture & Lifestyle", "Experience warm community life, local traditions, food, festivals, and heritage routes."],
   ["festival", "Festivals", "Celebrate Kasalag Festival and other events that bring Pontevedra culture to life."],
   ["news", "Latest News", "Read municipal tourism updates, announcements, and destination advisories."],
