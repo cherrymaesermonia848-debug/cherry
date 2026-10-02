@@ -269,6 +269,20 @@ function buildRequesterEmailHtml({
                 <span style="display:inline-block;background-color:#fef3c7;color:#92400e;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;">
                   Pending review
                 </span>
+
+                <div style="margin-top:24px;padding:18px;background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+                  <p style="margin:0 0 12px 0;color:#111827;font-size:14px;font-weight:600;">
+                    What happens next
+                  </p>
+                  <ol style="margin:0;padding-left:20px;color:#4b5563;font-size:13px;line-height:1.8;">
+                    <li>Your location request is saved with a pending status.</li>
+                    <li>The tourism team reviews the submitted address.</li>
+                    <li>The team updates the request after deciding whether it can be added to the map.</li>
+                  </ol>
+                  <p style="margin:12px 0 0 0;color:#6b7280;font-size:12px;line-height:1.6;">
+                    Please keep this confirmation for your records. If you need to follow up, reply to this email and include the address you submitted.
+                  </p>
+                </div>
               </td>
             </tr>
 
