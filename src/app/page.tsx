@@ -239,7 +239,7 @@ export default function Home() {
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
   const [selectedMapId, setSelectedMapId] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const defaultMapSource = `https://www.google.com/maps?q=${encodeURIComponent("Pontevedra, Capiz, Philippines")}&output=embed`;
+  const defaultMapSource = `https://www.google.com/maps?q=${encodeURIComponent("Pontevedra, Negros Occidental, Philippines")}&output=embed`;
 
   const mapCategoryDestinationMap: Record<string, Destination[]> = {
     "Barangay": barangayDestinations,
@@ -281,7 +281,7 @@ export default function Home() {
 
   const selectedMapLabel = selectedMapDestination
     ? `${selectedMapDestination.name} (${selectedMapCategory})`
-    : "Pontevedra, Capiz";
+    : "Pontevedra, Negros Occidental";
 
   const selectedMapSource = selectedMapDestination?.iframeLink || defaultMapSource;
 
