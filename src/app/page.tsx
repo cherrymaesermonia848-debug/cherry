@@ -1047,14 +1047,14 @@ export default function Home() {
 
       {selectedDestination && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5 py-8" role="dialog" aria-modal="true" aria-labelledby="destination-title">
-          <div className="max-h-full w-full max-w-4xl overflow-y-auto bg-white shadow-2xl">
+          <div className="max-h-full w-full max-w-6xl overflow-y-auto bg-white shadow-2xl">
               {selectedDestination.images.length > 0 ? (
                 <>
-                  <div className="relative h-56 w-full overflow-hidden sm:h-72">
+                  <div className="relative h-[60vh] min-h-72 max-h-[680px] w-full overflow-hidden bg-[#111111]">
                     <FadeImage
                       src={selectedDestination.images[activeImageIndex] ?? selectedDestination.images[0]}
                       alt={selectedDestination.name}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
 
                     {selectedDestination.images.length > 1 ? (
