@@ -25,15 +25,9 @@ export async function POST(req: NextRequest) {
 
     const final_data = {data};
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-        console.error("JWT_SECRET is not configured");
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
-    }
-
     const token = jwt.sign(
         { final_data },
-        jwtSecret,
+        process.env.JWT_SECRET || "",
         { expiresIn: "30d" }
     );
 
