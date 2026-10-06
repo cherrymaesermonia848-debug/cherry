@@ -310,12 +310,6 @@ export default function Home() {
     ...heritageDestinations.map((item) => ({ ...item, category: "Heritage" })),
     ...touristDestinations.map((item) => ({ ...item, category: "Tourist Spot" })),
   ];
-  const featuredDestinations = [
-    beachDestinations[0] ? { ...beachDestinations[0], category: "Beaches" } : null,
-    resortDestinations[0] ? { ...resortDestinations[0], category: "Resort" } : null,
-    heritageDestinations[0] ? { ...heritageDestinations[0], category: "Heritage" } : null,
-    touristDestinations[0] ? { ...touristDestinations[0], category: "Tourist Spot" } : null,
-  ].filter((item): item is SelectedDestination => item !== null);
 
   const searchResults =
     searchQuery.trim().length > 0
@@ -853,42 +847,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="featured-destinations" className="bg-gradient-to-br from-[#f5fbf7] via-white to-[#edf7f1] px-5 py-14 lg:px-20 lg:py-16">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.82fr_2.18fr] lg:items-center">
-          <div className="max-w-md">
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-[#0b6d36]">Featured</p>
-            <h2 className="mt-1 text-3xl font-black uppercase leading-tight text-[#123126] sm:text-4xl">Destinations</h2>
-            <p className="mt-3 text-sm leading-6 text-[#60716a]">Explore some of the most visited and loved places in Pontevedra.</p>
-            <a className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[#0b6d36] px-6 text-sm font-bold text-white transition hover:bg-[#07552a]" href="#beaches">
-              View All Destinations <span aria-hidden="true">→</span>
-            </a>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredDestinations.map((item, index) => (
-              <article className="group overflow-hidden rounded-xl border border-[#e1ebe5] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg" key={`${item.category}-${item.id}`}>
-                <button className="block w-full text-left" type="button" onClick={() => openDestinationDetails(item, item.category)}>
-                  <div className="relative h-28 overflow-hidden bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371] sm:h-24 xl:h-24">
-                    {item.images[0] ? <FadeImage src={item.images[0]} alt={item.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : null}
-                    {index === 0 ? <span className="absolute right-2 top-2 rounded-full bg-[#0b8c47] px-3 py-1 text-[10px] font-bold text-white shadow">Featured</span> : null}
-                  </div>
-                  <div className="p-3">
-                    <span className="inline-flex rounded-full bg-[#eaf5ee] px-2.5 py-1 text-[10px] font-bold text-[#0b6d36]">{item.category}</span>
-                    <h3 className="mt-2 truncate text-sm font-bold text-[#26352e]">{item.name}</h3>
-                    <p className="mt-1 truncate text-xs text-[#738078]">{item.location || "Pontevedra"}</p>
-                  </div>
-                </button>
-                <div className="flex justify-end border-t border-[#edf2ee] px-3 py-2">
-                  <button className="text-xs font-bold text-[#0b6d36] transition hover:text-[#07552a]" type="button" onClick={() => openDestinationDetails(item, item.category)}>
-                    View Details <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </article>
-            ))}
-            {featuredDestinations.length === 0 ? <p className="rounded-xl border border-dashed border-[#c9d9cf] p-6 text-sm text-[#60716a] sm:col-span-2 xl:col-span-4">Featured destinations will appear here when available.</p> : null}
-          </div>
-        </div>
-      </section>
 
       {destinationSections.map((section, sectionIndex) => {
         const isExpanded = expandedSections[section.id];
