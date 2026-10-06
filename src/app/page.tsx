@@ -95,62 +95,48 @@ const menuItems = [
 
 const places = [
   {
-    title: "Beaches",
-    subtitle: "Sun, sand and sea",
-    icon: "≋",
+    title: "BEACHES",
     href: "#beaches",
     desc: "Discover the beautiful beaches of Pontevedra with exact geolocation pins and scenic travel notes.",
     category: "Beaches",
     fallback: "from-[#235c71] via-[#d7c082] to-[#0d3324]",
   },
   {
-    title: "Resorts",
-    subtitle: "Relax and unwind",
-    icon: "▰",
+    title: "RESORTS",
     href: "#resorts",
     desc: "Find relaxing resorts, nearby routes, and visitor-friendly vacation stops around Pontevedra.",
     category: "Resort",
     fallback: "from-[#174334] via-[#79a96f] to-[#e7d8b0]",
   },
   {
-    title: "Barangays",
-    subtitle: "Our communities",
-    icon: "⌂",
+    title: "BARANGAY",
     href: "#barangay",
     desc: "Browse Pontevedra barangays and discover local community destinations by area.",
     category: "Barangay",
     fallback: "from-[#1e4c38] via-[#8fb36d] to-[#d8c371]",
   },
   {
-    title: "Cafes",
-    subtitle: "Good food & drinks",
-    icon: "◉",
+    title: "CAFE",
     href: "#cafe",
     desc: "Connect with local cafes and food stops that make every tourism route easier to enjoy.",
     category: "Cafe",
     fallback: "from-[#4a2f1d] via-[#b27a3c] to-[#f1dcb8]",
   },
   {
-    title: "Heritage",
-    subtitle: "History and culture",
-    icon: "♜",
+    title: "HERITAGE",
     href: "#heritage",
     desc: "Explore churches, landmarks, stories, and cultural destinations with accurate place data.",
     category: "Heritage",
     fallback: "from-[#2f342e] via-[#8d9a86] to-[#d5c8a6]",
   },
   {
-    title: "Attractions",
-    subtitle: "Must-visit spots",
-    icon: "⌖",
+    title: "TOURIST ATTRACTIONS",
     href: "#tourist",
     desc: "See notable places, community stops, and local attractions for better trip planning.",
     category: "Tourist Spot",
     fallback: "from-[#1f5d76] via-[#92b7b9] to-[#e2c478]",
   },
 ];
-
-const explorePlaces = [places[0], places[1], places[4], places[3], places[5], places[2]];
 
 const infoSections = [
   ["about", "ABOUT PONTEVEDRA", "Pontevedra is a beautiful municipality of Pontevedra known for its culture, history, and tourism destinations."],
@@ -231,6 +217,7 @@ function FadeImage({
 }
 
 export default function Home() {
+  const [placeIndex, setPlaceIndex] = useState(0);
   const [now, setNow] = useState<Date | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [selectedDestination, setSelectedDestination] = useState<SelectedDestination | null>(null);
@@ -247,6 +234,7 @@ export default function Home() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const place = places[placeIndex];
   const visiblePlaceCount = 3;
   const skipMapResetRef = useRef(false);
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
@@ -323,15 +311,6 @@ export default function Home() {
     ...heritageDestinations.map((item) => ({ ...item, category: "Heritage" })),
     ...touristDestinations.map((item) => ({ ...item, category: "Tourist Spot" })),
   ];
-  const featuredDestinations: SelectedDestination[] = [
-    ...beachDestinations.slice(0, 1).map((item) => ({ ...item, category: "Beaches" })),
-    ...heritageDestinations.slice(0, 1).map((item) => ({ ...item, category: "Heritage" })),
-    ...touristDestinations.slice(0, 2).map((item) => ({ ...item, category: "Tourist Spot" })),
-    ...resortDestinations.slice(0, 1).map((item) => ({ ...item, category: "Resort" })),
-    ...cafeDestinations.slice(0, 1).map((item) => ({ ...item, category: "Cafe" })),
-    ...barangayDestinations.slice(0, 1).map((item) => ({ ...item, category: "Barangay" })),
-  ].slice(0, 4);
-
   const searchResults =
     searchQuery.trim().length > 0
       ? allDestinationsWithCategory
@@ -474,8 +453,11 @@ export default function Home() {
   }, []);
 
   const showPlace = (index: number) => {
+    setPlaceIndex(index);
     document.querySelector(places[index].href)?.scrollIntoView({ behavior: "smooth" });
   };
+  const prevPlace = () => setPlaceIndex((current) => (current === 0 ? places.length - 1 : current - 1));
+  const nextPlace = () => setPlaceIndex((current) => (current === places.length - 1 ? 0 : current + 1));
   const toggleSection = (id: string) => {
     setExpandedSections((current) => ({ ...current, [id]: !current[id] }));
   };
@@ -814,78 +796,54 @@ export default function Home() {
         </section>
       ))}
 
-      <section className="relative overflow-hidden bg-[#f3f8f1] px-5 py-7 lg:px-20 lg:py-8">
-        <span aria-hidden="true" className="pointer-events-none absolute -left-8 top-4 select-none text-[150px] leading-none text-[#8aa77a]/15">❧</span>
-        <span aria-hidden="true" className="pointer-events-none absolute -bottom-12 left-0 select-none text-[190px] leading-none text-[#8aa77a]/20">❧</span>
-        <div id="explore" className="relative mx-auto grid max-w-7xl gap-6 lg:grid-cols-[.72fr_2.28fr] lg:items-center">
-          <div className="py-2 lg:pl-1">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#0b8c47]">Explore</p>
-            <h1 className="mt-1 whitespace-nowrap font-serif text-3xl font-black uppercase leading-none text-[#0d4936] sm:text-4xl">Pontevedra</h1>
-            <p className="mt-3 text-xs leading-5 text-[#31584a]">Discover places based on what you want to do.</p>
-            <span className="mt-4 block h-0.5 w-8 bg-[#0b8c47]" />
+      <section id="explore" className="relative isolate min-h-[660px] overflow-hidden px-5 py-20 text-white lg:px-20">
+       {categoryPreviewImageMap[place.category] ? (
+          <img
+            src={categoryPreviewImageMap[place.category]}
+            alt={place.title}
+            className="absolute inset-0 -z-30 h-full w-full object-cover"
+          />
+        ) : (
+          <div className={`absolute inset-0 -z-30 bg-gradient-to-br ${place.fallback}`} />
+        )}
+        <div className="absolute inset-0 -z-20 bg-black/55" />
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
+          <div className="pt-16">
+            <h1 className="text-6xl font-black sm:text-7xl">{place.title}</h1>
+            <p className="mt-6 max-w-xl text-xl leading-9">{place.desc}</p>
+            <a className="mt-8 inline-flex rounded-full bg-[#0b8c47] px-9 py-4 text-lg font-bold hover:bg-[#08733a]" href={place.href}>
+              See More
+            </a>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {explorePlaces.map((item, index) => {
-              const image = categoryPreviewImageMap[item.category];
-              const isWide = index < 3;
-              return (
+          <div>
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {places.map((item, index) => (
                 <button
-                  className={`group overflow-hidden rounded-xl border border-[#e2ebe4] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#0b8c47] ${isWide ? "" : "flex items-center"}`}
+                  className={`overflow-hidden rounded-[4px] bg-white text-left text-[#222222] shadow-xl transition hover:-translate-y-1 ${
+                    index === placeIndex ? "ring-4 ring-[#0b8c47]" : ""
+                  }`}
                   key={item.title}
                   type="button"
-                  onClick={() => showPlace(places.indexOf(item))}
+                  onClick={() => showPlace(index)}
                 >
-                  <span className={`relative block shrink-0 overflow-hidden bg-gradient-to-br ${item.fallback} ${isWide ? "h-20 w-full" : "h-[68px] w-[40%]"}`}>
-                    {image ? <img src={image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : null}
-                    <span className="absolute bottom-0 left-3 grid size-9 translate-y-1/3 place-items-center rounded-full border-2 border-white bg-[#087447] text-lg font-bold text-white shadow">{item.icon}</span>
-                  </span>
-                  <span className={`flex min-w-0 flex-1 items-center justify-between gap-2 ${isWide ? "px-4 pb-2 pt-4" : "px-3 py-2"}`}>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-bold text-[#174634]">{item.title}</span>
-                      <span className="mt-0.5 block truncate text-[10px] text-[#65736b]">{item.subtitle}</span>
-                    </span>
-                    <span aria-hidden="true" className="shrink-0 text-base text-[#176346] transition group-hover:translate-x-1">→</span>
-                  </span>
+                  {categoryPreviewImageMap[item.category] ? (
+                    <img src={categoryPreviewImageMap[item.category]} alt={item.title} className="h-40 w-full object-cover" />
+                  ) : (
+                    <span className={`block h-40 bg-gradient-to-br ${item.fallback}`} />
+                  )}
+                  <span className="block p-4 text-xl font-black">{item.title}</span>
                 </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div id="featured-destinations" className="relative mx-auto mt-8 grid max-w-7xl gap-5 border-t border-[#e1eae2] pt-7 lg:grid-cols-[.72fr_2.28fr] lg:items-center">
-          <div className="py-2 lg:pl-1">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#0b8c47]">Featured</p>
-            <h2 className="mt-1 font-serif text-3xl font-black uppercase leading-none text-[#0d4936] sm:text-4xl">Destinations</h2>
-            <p className="mt-3 max-w-xs text-xs leading-5 text-[#31584a]">Explore some of the most visited and loved places in Pontevedra.</p>
-            <a className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-[#087447] px-5 text-xs font-bold text-white transition hover:bg-[#075b39]" href="#beaches">
-              View All Destinations <span aria-hidden="true">→</span>
-            </a>
-            <span aria-hidden="true" className="mt-3 block font-serif text-4xl leading-4 tracking-[-0.2em] text-[#0ba59a]">﹏﹏</span>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredDestinations.map((item, index) => (
-              <article className="group overflow-hidden rounded-xl border border-[#e0e9e2] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" key={`${item.category}-${item.id}`}>
-                <div className="relative h-24 overflow-hidden bg-gradient-to-br from-[#1e4c38] via-[#8fb36d] to-[#d8c371]">
-                  {item.images[0] ? <FadeImage src={item.images[0]} alt={item.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : null}
-                  {index === 0 ? <span className="absolute left-2 top-2 rounded-full bg-[#087447] px-2.5 py-1 text-[9px] font-bold text-white">Featured</span> : null}
-                </div>
-                <div className="p-3">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#eaf4ed] px-2 py-1 text-[9px] font-semibold text-[#176346]">
-                    <span aria-hidden="true">⌖</span> {item.category === "Beaches" ? "Beach" : item.category === "Tourist Spot" ? "Tourist Attraction" : item.category}
-                  </span>
-                  <h3 className="mt-1.5 truncate text-xs font-bold text-[#263c32]">{item.name}</h3>
-                  <div className="mt-1 flex items-center justify-between gap-2">
-                    <p className="min-w-0 truncate text-[10px] text-[#718078]">{item.location || "Pontevedra"}</p>
-                    <button className="shrink-0 text-[10px] font-bold text-[#176346] transition hover:text-[#087447]" type="button" onClick={() => openDestinationDetails(item, item.category)}>
-                      View Details <span aria-hidden="true">→</span>
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-            {featuredDestinations.length === 0 ? <p className="rounded-xl border border-dashed border-[#c9d9cf] p-6 text-xs text-[#60716a] sm:col-span-2 xl:col-span-4">Featured destinations will appear here when available.</p> : null}
+              ))}
+            </div>
+            <div className="mt-8 flex gap-3">
+              <button className="size-12 bg-white text-2xl font-black text-[#0b6d36]" type="button" onClick={prevPlace}>
+                &lt;
+              </button>
+              <button className="size-12 bg-white text-2xl font-black text-[#0b6d36]" type="button" onClick={nextPlace}>
+                &gt;
+              </button>
+            </div>
           </div>
         </div>
       </section>
