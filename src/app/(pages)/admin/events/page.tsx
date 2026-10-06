@@ -4,7 +4,7 @@ import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import json_route from "@/config/json_route.json";
 import { SideBar } from "@/components/admin";
-import { Fetch_to } from "@/utilities";
+import { Fetch_to, Fetch_toFile } from "@/utilities";
 
 type LatestNewsRecord = {
   id: number;
@@ -19,6 +19,7 @@ type UpcomingEventRecord = {
   locationName: string;
   date: string;
   description: string;
+  image: string;
 };
 
 type LocationOption = {
@@ -52,6 +53,7 @@ export default function EventsPage() {
   const [eventLocationId, setEventLocationId] = useState<string>("");
   const [eventDate, setEventDate] = useState("");
   const [eventDescription, setEventDescription] = useState("");
+  const [eventImage, setEventImage] = useState<File | null>(null);
   const [isPostingEvent, setIsPostingEvent] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
 
@@ -95,6 +97,7 @@ export default function EventsPage() {
                 locationType: row.locations_type,
                 locationName: row.located_in,
                 description: row.description,
+                image: typeof row.image_src === "string" ? row.image_src : Array.isArray(row.image_src) ? row.image_src[0] ?? "" : "",
                 date: row.date
               }))
             : []
@@ -200,12 +203,15 @@ export default function EventsPage() {
     setDisabled_button(true);
 
     try {
-      const response = await Fetch_to(json_route.admin.events, {
+      const eventFields = {
         locations_type: eventLocationType,
         selected_location_id: selectedLocation.id,
         description: eventDescription,
         date: eventDate,
-      });
+      };
+      const response = eventImage
+        ? await Fetch_toFile(json_route.admin.events, eventImage, eventFields)
+        : await Fetch_to(json_route.admin.events, eventFields);
 
       if (!response.success) {
         console.error("Post event failed: ", response.message);
@@ -218,12 +224,14 @@ export default function EventsPage() {
           locationName: selectedLocation.name,
           date: eventDate,
           description: eventDescription,
+          image: response.data.message.image_src ?? "",
         },
         ...currentEvents,
       ]);
 
       setEventDate("");
       setEventDescription("");
+      setEventImage(null);
       setEventLocationId("");
     } catch (err) {
       console.error(err);
@@ -338,6 +346,16 @@ export default function EventsPage() {
                   className="min-h-32 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                   placeholder="Write the latest news description."
                 />
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+                Event Image
+                <span className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-center transition hover:border-teal-600 hover:bg-teal-50">
+                  <span className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white">Upload Image</span>
+                  <span className="max-w-full break-words text-xs font-normal text-zinc-600">{eventImage?.name ?? "Choose an image from your device (optional)"}</span>
+                  <input type="file" accept="image/*" onChange={(event) => setEventImage(event.target.files?.[0] ?? null)} className="sr-only" />
+                </span>
+                {eventImage ? <button type="button" onClick={() => setEventImage(null)} className="self-start text-xs font-semibold text-red-600 hover:text-red-700">Remove image</button> : null}
               </label>
 
               <div className="flex justify-end">
@@ -497,6 +515,7 @@ export default function EventsPage() {
                     <th className="w-40 px-4 py-3">Location Type</th>
                     <th className="w-40 px-4 py-3">Located in</th>
                     <th className="w-36 px-4 py-3">Date</th>
+                    <th className="w-28 px-4 py-3">Image</th>
                     <th className="w-96 px-4 py-3">Description</th>
                     <th className="w-32 px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -511,6 +530,7 @@ export default function EventsPage() {
                       </td>
                       <td className="px-4 py-4 font-semibold text-zinc-950">{event.locationName}</td>
                       <td className="px-4 py-4 font-semibold text-zinc-950">{event.date}</td>
+                      <td className="px-4 py-4">{event.image ? <img src={event.image} alt={`${event.locationName} event`} className="h-14 w-20 rounded object-cover" /> : "—"}</td>
                       <td className="px-4 py-4 text-zinc-700">
                         <p className="line-clamp-4 leading-6">{event.description}</p>
                       </td>

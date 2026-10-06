@@ -156,6 +156,7 @@ type EventItem = {
   id: number;
   title: string;
   text: string;
+  image: string;
   date: string;       // formatted display date, e.g. "JUN 25"
   rawDate: string;    // original date string, for sorting
   locationsType: string;
@@ -390,6 +391,7 @@ export default function Home() {
               id: row.id as number,
               title: (row.located_in as string) ?? locationsType ?? "Event",
               text: (row.description as string) ?? "",
+              image: typeof row.image_src === "string" ? row.image_src : Array.isArray(row.image_src) ? String(row.image_src[0] ?? "") : "",
               date: rawDate
                 ? new Date(rawDate).toLocaleDateString("en-US", { month: "short", day: "2-digit" }).toUpperCase()
                 : "",
@@ -1010,7 +1012,8 @@ export default function Home() {
             {upcomingEvents.length > 0 ? (
               upcomingEvents.map((event) => (
                 <article className="flex items-center gap-5 border-l-8 border-[#0b6d36] bg-[#f7f7f7] p-5" key={event.id}>
-                  <h3 className="w-24 text-2xl font-black text-[#0b6d36]">{event.date}</h3>
+                  {event.image ? <img src={event.image} alt={event.title} className="h-20 w-28 shrink-0 rounded-md object-cover" /> : null}
+                  <h3 className="w-24 shrink-0 text-2xl font-black text-[#0b6d36]">{event.date}</h3>
                   <div>
                     <p className="text-lg font-semibold">{event.title}</p>
                     <p className="mt-1 text-sm text-[#666666]">{event.text}</p>

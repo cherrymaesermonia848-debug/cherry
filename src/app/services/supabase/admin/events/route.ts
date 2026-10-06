@@ -20,7 +20,23 @@ const categoryTableMap: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const { locations_type, selected_location_id, description, date } = await req.json();
+  let locations_type: string;
+  let selected_location_id: number;
+  let description: string;
+  let date: string;
+  let image: File | null = null;
+
+  if (req.headers.get("content-type")?.includes("multipart/form-data")) {
+    const form = await req.formData();
+    locations_type = String(form.get("locations_type") ?? "");
+    selected_location_id = Number(form.get("selected_location_id"));
+    description = String(form.get("description") ?? "");
+    date = String(form.get("date") ?? "");
+    const uploaded = form.get("file");
+    image = uploaded instanceof File && uploaded.size > 0 ? uploaded : null;
+  } else {
+    ({ locations_type, selected_location_id, description, date } = await req.json());
+  }
 
   const table = categoryTableMap[locations_type];
   const fkColumn = categoryColumnMap[locations_type];
@@ -53,15 +69,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Selected location not found" }, { status: 404 });
     }
 
+    let imageUrl = "";
+    if (image) {
+      if (!image.type.startsWith("image/")) {
+        return NextResponse.json({ success: false, error: "Please upload an image file" }, { status: 400 });
+      }
+      const imagePath = `events/${Date.now()}_${image.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { data: uploadedImage, error: uploadError } = await supabaseServer.storage
+        .from("locations_image")
+        .upload(imagePath, image, { contentType: image.type, upsert: false });
+      if (uploadError) {
+        console.error("Event image upload error: ", uploadError);
+        return NextResponse.json({ success: false, error: "Event image upload failed" }, { status: 500 });
+      }
+      imageUrl = supabaseServer.storage.from("locations_image").getPublicUrl(uploadedImage.path).data.publicUrl;
+    }
+
+    const eventRecord: Record<string, string | number> = {
+      locations_type,
+      located_in: locationRow.name,
+      description,
+      [fkColumn]: selected_location_id,
+      date,
+    };
+    if (imageUrl) eventRecord.image_src = imageUrl;
+
     const { data, error } = await supabaseServer
       .from("event")
-      .insert([{
-        locations_type,
-        located_in: locationRow.name,
-        description,
-        [fkColumn]: selected_location_id,
-        date
-      }])
+      .insert([eventRecord])
       .select();
 
     if (error) {
