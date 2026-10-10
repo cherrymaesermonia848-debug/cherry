@@ -1132,10 +1132,6 @@ export default function Home() {
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">About This Place</h3>
                   <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.description}</p>
-                  <p className="mt-5 text-base leading-7 text-[#666666]">
-                    This listing helps visitors understand the place before going there. Use the map for route planning,
-                    then check local conditions, opening availability, and visitor guidance before your trip.
-                  </p>
                 </div>
 
                 <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-5">
