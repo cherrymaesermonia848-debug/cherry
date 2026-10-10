@@ -1043,7 +1043,7 @@ export default function Home() {
 
       <section id="contact" className="px-5 py-20 text-center lg:px-20">
         <h2 className="text-4xl font-black text-[#0b6d36]">CONTACT US</h2>
-        <p className="mt-6 text-lg">Municipality of Pontevedra, Capiz</p>
+        <p className="mt-6 text-lg">Municipality of Pontevedra, Negros Occidental</p>
         <p className="mt-2 text-lg">Email: info@pontevedra.gov.ph</p>
         <p className="mt-2 text-lg">Phone: +63 912 345 6789</p>
       </section>
@@ -1244,7 +1244,7 @@ export default function Home() {
                 </span>
               </a>
               <p className="mt-5 max-w-sm text-sm leading-7 text-[#cfead8]">
-                Municipality of Pontevedra, Capiz, Republic of the Philippines.
+                Municipality of Pontevedra, Negros Occidental, Republic of the Philippines.
               </p>
               <div className="mt-6 flex gap-3">
                 {["f", "IG", "YT"].map((item) => (
@@ -1290,7 +1290,7 @@ export default function Home() {
               <h3 className="text-sm font-black uppercase tracking-[0.16em] text-white">Contact</h3>
               <div className="mt-5 space-y-4 text-sm leading-6 text-[#cfead8]">
                 <p>Municipal Tourism Office</p>
-                <p>Pontevedra, Capiz, Philippines</p>
+                <p>Pontevedra, Negros Occidental, Philippines</p>
                 <p>
                   <a className="transition hover:text-white" href="mailto:info@pontevedra.gov.ph">
                     info@pontevedra.gov.ph
