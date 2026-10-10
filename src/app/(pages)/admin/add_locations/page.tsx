@@ -24,8 +24,6 @@ const locationTypes = [
   "Tourist Spot",
 ];
 
-const MAX_IMAGES = 5;
-
 const emptyForm = {
   category: locationTypes[0],
   name: "",
@@ -34,6 +32,7 @@ const emptyForm = {
   gmail: "",
   transportations: [{ type: "", description: "" }] as Transportation[],
   about: "",
+  history: "",
   iframe_link: "",
 };
 
@@ -42,7 +41,6 @@ export default function AddLocationsPage() {
   const [form, setForm] = useState(emptyForm);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [message, setMessage] = useState("");
-  const [imageError, setImageError] = useState("");
 
   const [disabled_button, setDisabled_button] = useState(false);
 
@@ -108,23 +106,11 @@ export default function AddLocationsPage() {
     if (!files || files.length === 0) return;
 
     const incoming = Array.from(files);
-
-    setSelectedImages((current) => {
-      const combined = [...current, ...incoming];
-
-      if (combined.length > MAX_IMAGES) {
-        setImageError(`You can only upload up to ${MAX_IMAGES} images.`);
-        return combined.slice(0, MAX_IMAGES);
-      }
-
-      setImageError("");
-      return combined;
-    });
+    setSelectedImages((current) => [...current, ...incoming]);
   };
 
   const removeImage = (index: number) => {
     setSelectedImages((current) => current.filter((_, currentIndex) => currentIndex !== index));
-    setImageError("");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -145,6 +131,7 @@ export default function AddLocationsPage() {
       gmail: form.gmail,
       transportations: JSON.stringify(form.transportations),
       about: form.about,
+      history: form.history,
       iframe_link: form.iframe_link,
     });
 
@@ -313,28 +300,33 @@ export default function AddLocationsPage() {
             />
           </label>
 
+          <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+            History of This Place
+            <textarea
+              value={form.history}
+              onChange={(event) => updateField("history", event.target.value)}
+              className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              placeholder="Share the history of this place."
+            />
+          </label>
+
           <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2 lg:col-span-3">
-            Image Upload ({selectedImages.length}/{MAX_IMAGES})
+            Image Upload ({selectedImages.length})
             <label
-              className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-md border border-dashed px-3 py-4 text-center transition ${
-                selectedImages.length >= MAX_IMAGES
-                  ? "cursor-not-allowed border-zinc-200 bg-zinc-100 opacity-60"
-                  : "cursor-pointer border-zinc-300 bg-zinc-50 hover:border-teal-600 hover:bg-teal-50"
-              }`}
+              className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-center transition hover:border-teal-600 hover:bg-teal-50"
             >
               <span className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white">
                 Upload Images
               </span>
               <span className="max-w-full break-words text-xs font-normal text-zinc-600">
                 {selectedImages.length === 0
-                  ? "Choose up to 5 images from your device"
+                  ? "Choose images from your device"
                   : "Add more images"}
               </span>
               <input
                 type="file"
                 accept="image/*"
                 multiple
-                disabled={selectedImages.length >= MAX_IMAGES}
                 onChange={(event) => {
                   handleImageUpload(event.target.files);
                   event.target.value = "";
@@ -342,10 +334,6 @@ export default function AddLocationsPage() {
                 className="sr-only"
               />
             </label>
-
-            {imageError ? (
-              <span className="text-xs font-normal text-red-600">{imageError}</span>
-            ) : null}
 
             {selectedImages.length > 0 ? (
               <ul className="flex flex-col gap-2">

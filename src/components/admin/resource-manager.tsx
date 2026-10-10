@@ -17,6 +17,7 @@ type ResourceRecord = {
   gmail: string;
   transportations: Transportation[] | string | null;
   about: string;
+  history: string;
   image_src: string;
   iframe_link: string;
 };
@@ -37,6 +38,7 @@ type ResourceForm = {
   gmail: string;
   transportations: Transportation[];
   about: string;
+  history: string;
   image_src: string;
   iframe_link: string;
 };
@@ -48,6 +50,7 @@ const emptyResourceForm: ResourceForm = {
   gmail: "",
   transportations: [{ type: "", description: "" }],
   about: "",
+  history: "",
   image_src: "",
   iframe_link: "",
 };
@@ -113,6 +116,7 @@ export default function ResourceManager({
         ? parseTransportations(record.transportations)
         : [{ type: "", description: "" }],
       about: record.about,
+      history: record.history ?? "",
       image_src: record.image_src,
       iframe_link: record.iframe_link,
     });
@@ -484,6 +488,16 @@ export default function ResourceManager({
                 />
               </label>
 
+              <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+                History of This Place
+                <textarea
+                  value={form.history}
+                  onChange={(event) => updateField("history", event.target.value)}
+                  className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  placeholder={`History of the ${singularName.toLowerCase()}.`}
+                />
+              </label>
+
               <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2">
                 Image Source
                 <input
@@ -547,6 +561,13 @@ export default function ResourceManager({
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">About</h3>
                     <p className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
                       {selectedRecord.about || "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">History of This Place</h3>
+                    <p className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+                      {selectedRecord.history || "N/A"}
                     </p>
                   </div>
 

@@ -10,8 +10,6 @@ const categoryTableMap: Record<string, string> = {
   "Tourist Spot": "touristspot",
 };
 
-const MAX_IMAGES = 5;
-
 export async function POST(params: NextRequest) {
   const form = (await params.formData()) as unknown as globalThis.FormData;
   const category = form.get("category") as string;
@@ -21,6 +19,7 @@ export async function POST(params: NextRequest) {
   const gmail = form.get("gmail") as string;
   const transportations = form.get("transportations") as string;
   const about = form.get("about") as string;
+  const history = (form.get("history") as string) ?? "";
   const iframe_link = form.get("iframe_link") as string;
 
   // Fetch_toFile appends every selected File under the same "file" key
@@ -34,10 +33,6 @@ export async function POST(params: NextRequest) {
 
   if (images.length === 0) {
     return NextResponse.json({ success: false, error: "At least one image is required" }, { status: 400 });
-  }
-
-  if (images.length > MAX_IMAGES) {
-    return NextResponse.json({ success: false, error: `Maximum of ${MAX_IMAGES} images allowed` }, { status: 400 });
   }
 
   const baseDir = `${category}/${name}_${Date.now()}`;
@@ -80,6 +75,7 @@ export async function POST(params: NextRequest) {
           gmail,
           transportations,
           about,
+          history,
           image_src: imageUrls,
           iframe_link,
           image_dir: imageDirs,

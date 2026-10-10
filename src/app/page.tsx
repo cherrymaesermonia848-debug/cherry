@@ -15,6 +15,7 @@ type Destination = {
   name: string;
   location: string;
   description: string;
+  history: string;
   images: string[];
   iframeLink: string;
   facebookPage: string;
@@ -345,6 +346,7 @@ export default function Home() {
                   name: (row.name as string) ?? "",
                   location: (row.locations as string) ?? "",
                   description: (row.about as string) ?? "",
+                  history: (row.history as string) ?? "",
                   images: parseImages(row.image_src),
                   iframeLink: (row.iframe_link as string) ?? "",
                   facebookPage: (row.facebook_page as string) ?? "",
@@ -1132,6 +1134,12 @@ export default function Home() {
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">About This Place</h3>
                   <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.description}</p>
+                  {selectedDestination.history ? (
+                    <div className="mt-6">
+                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">History of This Place</h3>
+                      <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.history}</p>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-5">
