@@ -778,7 +778,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section id="home" className="relative isolate h-[70vh] min-h-[420px] w-full overflow-hidden bg-black sm:h-[80vh] lg:h-screen">
+      <section id="home" className="relative isolate h-screen min-h-[420px] w-full overflow-hidden bg-black">
         <video
           className="absolute inset-0 h-full w-full object-contain"
           src="/hero-video.mp4"
