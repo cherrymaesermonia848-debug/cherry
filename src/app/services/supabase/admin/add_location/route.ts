@@ -54,7 +54,7 @@ export async function POST(params: NextRequest) {
 
       if (uploadError) {
         console.error("Supabase Query Error: ", uploadError);
-        return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
+        return NextResponse.json({ success: false, error: `Image upload failed: ${uploadError.message}` }, { status: 500 });
       }
 
       const { data: publicUrlData } = supabaseServer.storage
@@ -84,7 +84,7 @@ export async function POST(params: NextRequest) {
 
     if (error) {
       console.error("Supabase Query Error: ", error);
-      return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
+      return NextResponse.json({ success: false, error: `Location save failed: ${error.message}` }, { status: 500 });
     }
 
     return NextResponse.json(
