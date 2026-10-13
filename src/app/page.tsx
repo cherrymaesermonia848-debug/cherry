@@ -221,6 +221,7 @@ export default function Home() {
   const [placeIndex, setPlaceIndex] = useState(0);
   const [now, setNow] = useState<Date | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [expandedDestinationText, setExpandedDestinationText] = useState<Record<string, boolean>>({});
   const [selectedDestination, setSelectedDestination] = useState<SelectedDestination | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedMenuChoice, setSelectedMenuChoice] = useState<string | null>(null);
@@ -483,6 +484,29 @@ export default function Home() {
     );
   };
   const closeDestinationDetails = () => setSelectedDestination(null);
+  const isCafeDestination = selectedDestination?.category === "Cafe";
+  const isBarangayDestination = selectedDestination?.category === "Barangay";
+  const isResortOrBeachDestination = selectedDestination?.category === "Resort" || selectedDestination?.category === "Beaches";
+  const destinationText = (key: string, value: string) => {
+    const expanded = expandedDestinationText[key] ?? false;
+    const shouldCollapse = value.length > 300;
+    return (
+      <>
+        <p className="mt-3 whitespace-pre-line text-base leading-7 text-[#555555]">
+          {shouldCollapse && !expanded ? `${value.slice(0, 300).trimEnd()}…` : value}
+        </p>
+        {shouldCollapse ? (
+          <button
+            type="button"
+            className="mt-1 text-sm font-bold text-[#0b6d36] hover:underline"
+            onClick={() => setExpandedDestinationText((current) => ({ ...current, [key]: !expanded }))}
+          >
+            {expanded ? "See less" : "See more"}
+          </button>
+        ) : null}
+      </>
+    );
+  };
   const destinationSections = [
     {
       id: "beaches",
@@ -1139,19 +1163,21 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">About This Place</h3>
-                  <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.description}</p>
+              <div className={`mt-8 grid gap-6 ${isCafeDestination || isBarangayDestination ? "grid-cols-1" : "lg:grid-cols-[1.2fr_.8fr]"}`}>
+                <div className="grid grid-cols-1 gap-6">
+                  <section>
+                    <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Description</h3>
+                    {destinationText(`description-${selectedDestination.id}`, selectedDestination.description || "No description available.")}
+                  </section>
                   {selectedDestination.history ? (
-                    <div className="mt-6">
-                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">History of This Place</h3>
-                      <p className="mt-3 text-lg leading-8 text-[#555555]">{selectedDestination.history}</p>
-                    </div>
+                    <section>
+                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">History</h3>
+                      {destinationText(`history-${selectedDestination.id}`, selectedDestination.history)}
+                    </section>
                   ) : null}
                 </div>
 
-                <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-5">
+                <div className={`border border-[#e2e8e4] bg-[#f7f7f7] p-5 ${isCafeDestination || isBarangayDestination ? "" : "lg:row-span-2"}`}>
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Visitor Details</h3>
                   <dl className="mt-4 space-y-4 text-sm">
                     <div>
