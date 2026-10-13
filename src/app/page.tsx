@@ -627,7 +627,11 @@ export default function Home() {
             >
               <ul className="flex flex-col gap-1 text-[15px] text-white lg:flex-row lg:items-center lg:gap-1">
                 {menuItems.map((item) => (
-                  <li className="group relative" key={item.label}>
+                  <li
+                    className="group relative"
+                    key={item.label}
+                    onMouseEnter={() => setSelectedMenuLabel(null)}
+                  >
                     <a
                       className="flex h-9 items-center justify-between gap-2 rounded-sm px-3 font-semibold text-white transition hover:bg-white/10 hover:text-white lg:justify-start lg:px-2"
                       href={item.href}
@@ -636,7 +640,7 @@ export default function Home() {
                       <span className="whitespace-nowrap">{item.label}</span>
                       <span className="text-[10px] leading-none text-[#0b6d36]">▾</span>
                     </a>
-                    <ul className={`grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:shadow-xl lg:transition-opacity ${selectedMenuLabel === item.label ? "lg:visible lg:opacity-100" : "lg:invisible lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100"}`}>
+                    <ul className={`${selectedMenuLabel === item.label ? "hidden" : "grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:shadow-xl lg:transition-opacity lg:invisible lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100"}`}>
                       {item.links.map(([label, href]) => (
                         <li key={label}>
                           <a
