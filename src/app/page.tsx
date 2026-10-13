@@ -507,6 +507,9 @@ export default function Home() {
   const closeDestinationDetails = () => setSelectedDestination(null);
   const isCafeDestination = selectedDestination?.category === "Cafe";
   const isBarangayDestination = selectedDestination?.category === "Barangay";
+  const isResortDestination = selectedDestination?.category === "Resort";
+  const isBeachDestination = selectedDestination?.category === "Beaches";
+  const isResortOrBeachDestination = isResortDestination || isBeachDestination;
   const destinationText = (key: string, value: string | null | undefined) => {
     const safeValue = typeof value === "string" && value.trim().length > 0 ? value : "No description available.";
     const expanded = expandedDestinationText[key] ?? false;
