@@ -223,6 +223,8 @@ export default function Home() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [selectedDestination, setSelectedDestination] = useState<SelectedDestination | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedMenuChoice, setSelectedMenuChoice] = useState<string | null>(null);
+  const [selectedMenuLabel, setSelectedMenuLabel] = useState<string | null>(null);
   const [isHeaderCompact, setIsHeaderCompact] = useState(false);
   const [beachDestinations, setBeachDestinations] = useState<Destination[]>([]);
   const [barangayDestinations, setBarangayDestinations] = useState<Destination[]>([]);
@@ -634,13 +636,16 @@ export default function Home() {
                       <span className="whitespace-nowrap">{item.label}</span>
                       <span className="text-[10px] leading-none text-[#0b6d36]">▾</span>
                     </a>
-                    <ul className="grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:invisible lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:opacity-0 lg:shadow-xl lg:transition lg:group-hover:visible lg:group-hover:opacity-100">
+                    <ul className={`grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:shadow-xl lg:transition-opacity ${selectedMenuLabel === item.label ? "lg:visible lg:opacity-100" : "lg:invisible lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100"}`}>
                       {item.links.map(([label, href]) => (
                         <li key={label}>
                           <a
-                            className="block px-4 py-2 text-sm hover:bg-[#f2f6f3] hover:text-[#0b6d36] lg:py-3"
+                            className={`block px-4 py-2 text-sm hover:bg-[#f2f6f3] hover:text-[#0b6d36] lg:py-3 ${selectedMenuChoice === `${item.label}:${label}` ? "bg-[#edf4ef] font-semibold text-[#0b6d36]" : "text-[#0b6d36]"}`}
                             href={href}
-                            onClick={() => setIsMobileMenuOpen(false)}
+                            onClick={() => {
+                              setSelectedMenuChoice(`${item.label}:${label}`);
+                              setSelectedMenuLabel(item.label);
+                            }}
                           >
                             {label}
                           </a>
