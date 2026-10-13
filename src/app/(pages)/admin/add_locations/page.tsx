@@ -33,6 +33,9 @@ const emptyForm = {
   transportations: [{ type: "", description: "" }] as Transportation[],
   about: "",
   history: "",
+  products_and_services: "",
+  information: "",
+  accommodations_and_services: "",
   iframe_link: "",
 };
 
@@ -132,6 +135,11 @@ export default function AddLocationsPage() {
       transportations: JSON.stringify(form.transportations),
       about: form.about,
       history: form.history,
+      ...(form.category === "Cafe" ? { products_and_services: form.products_and_services } : {}),
+      ...(form.category === "Barangay" ? { information: form.information } : {}),
+      ...(["Resort", "Beaches"].includes(form.category)
+        ? { accommodations_and_services: form.accommodations_and_services }
+        : {}),
       iframe_link: form.iframe_link,
     });
 
@@ -309,6 +317,42 @@ export default function AddLocationsPage() {
               placeholder="Share the history of this place."
             />
           </label>
+
+          {form.category === "Cafe" ? (
+            <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+              Products and Services
+              <textarea
+                value={form.products_and_services}
+                onChange={(event) => updateField("products_and_services", event.target.value)}
+                className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                placeholder="Add only confirmed products and services."
+              />
+            </label>
+          ) : null}
+
+          {form.category === "Barangay" ? (
+            <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+              Barangay Information
+              <textarea
+                value={form.information}
+                onChange={(event) => updateField("information", event.target.value)}
+                className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                placeholder="Add relevant information about this barangay."
+              />
+            </label>
+          ) : null}
+
+          {form.category === "Resort" || form.category === "Beaches" ? (
+            <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+              Accommodations and Services
+              <textarea
+                value={form.accommodations_and_services}
+                onChange={(event) => updateField("accommodations_and_services", event.target.value)}
+                className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                placeholder="Add confirmed facilities, fees, or services."
+              />
+            </label>
+          ) : null}
 
           <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2 lg:col-span-3">
             Image Upload ({selectedImages.length})

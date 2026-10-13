@@ -21,6 +21,9 @@ export async function POST(params: NextRequest) {
   const about = form.get("about") as string;
   const history = (form.get("history") as string) ?? "";
   const iframe_link = form.get("iframe_link") as string;
+  const products_and_services = (form.get("products_and_services") as string) ?? "";
+  const information = (form.get("information") as string) ?? "";
+  const accommodations_and_services = (form.get("accommodations_and_services") as string) ?? "";
 
   // Fetch_toFile appends every selected File under the same "file" key
   const images = form.getAll("file") as File[];
@@ -76,6 +79,9 @@ export async function POST(params: NextRequest) {
           transportations,
           about,
           history,
+          ...(category === "Cafe" ? { products_and_services } : {}),
+          ...(category === "Barangay" ? { information } : {}),
+          ...(["Resort", "Beaches"].includes(category) ? { accommodations_and_services } : {}),
           image_src: imageUrls,
           iframe_link,
           image_dir: imageDirs,

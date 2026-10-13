@@ -18,6 +18,9 @@ type ResourceRecord = {
   transportations: Transportation[] | string | null;
   about: string;
   history: string;
+  products_and_services?: string;
+  information?: string;
+  accommodations_and_services?: string;
   image_src: string;
   iframe_link: string;
 };
@@ -39,6 +42,9 @@ type ResourceForm = {
   transportations: Transportation[];
   about: string;
   history: string;
+  products_and_services: string;
+  information: string;
+  accommodations_and_services: string;
   image_src: string;
   iframe_link: string;
 };
@@ -51,6 +57,9 @@ const emptyResourceForm: ResourceForm = {
   transportations: [{ type: "", description: "" }],
   about: "",
   history: "",
+  products_and_services: "",
+  information: "",
+  accommodations_and_services: "",
   image_src: "",
   iframe_link: "",
 };
@@ -117,6 +126,9 @@ export default function ResourceManager({
         : [{ type: "", description: "" }],
       about: record.about,
       history: record.history ?? "",
+      products_and_services: record.products_and_services ?? "",
+      information: record.information ?? "",
+      accommodations_and_services: record.accommodations_and_services ?? "",
       image_src: record.image_src,
       iframe_link: record.iframe_link,
     });
@@ -188,10 +200,21 @@ export default function ResourceManager({
     setIsSaving(true);
 
     try {
+      const {
+        products_and_services,
+        information,
+        accommodations_and_services,
+        ...baseFields
+      } = form;
       const response = await Fetch_to(json_route.admin.update_location, {
         id: editingRecord.id,
         category: title,
-        ...form,
+        ...baseFields,
+        ...(title === "Cafe" ? { products_and_services } : {}),
+        ...(title === "Barangay" ? { information } : {}),
+        ...(["Resort", "Beaches"].includes(title)
+          ? { accommodations_and_services }
+          : {}),
         transportations: JSON.stringify(form.transportations),
       });
 
@@ -498,6 +521,40 @@ export default function ResourceManager({
                 />
               </label>
 
+              {title === "Cafe" ? (
+                <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+                  Products and Services
+                  <textarea
+                    value={form.products_and_services}
+                    onChange={(event) => updateField("products_and_services", event.target.value)}
+                    className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    placeholder="Confirmed products and services"
+                  />
+                </label>
+              ) : null}
+              {title === "Barangay" ? (
+                <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+                  Barangay Information
+                  <textarea
+                    value={form.information}
+                    onChange={(event) => updateField("information", event.target.value)}
+                    className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    placeholder="Relevant information about this barangay"
+                  />
+                </label>
+              ) : null}
+              {["Resort", "Beaches"].includes(title) ? (
+                <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 lg:col-span-3">
+                  Accommodations and Services
+                  <textarea
+                    value={form.accommodations_and_services}
+                    onChange={(event) => updateField("accommodations_and_services", event.target.value)}
+                    className="min-h-28 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    placeholder="Confirmed facilities, fees, and services"
+                  />
+                </label>
+              ) : null}
+
               <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700 sm:col-span-2">
                 Image Source
                 <input
@@ -570,6 +627,25 @@ export default function ResourceManager({
                       {selectedRecord.history || "N/A"}
                     </p>
                   </div>
+
+                  {title === "Cafe" && selectedRecord.products_and_services ? (
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Products and Services</h3>
+                      <p className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">{selectedRecord.products_and_services}</p>
+                    </div>
+                  ) : null}
+                  {title === "Barangay" && selectedRecord.information ? (
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Information</h3>
+                      <p className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">{selectedRecord.information}</p>
+                    </div>
+                  ) : null}
+                  {["Resort", "Beaches"].includes(title) && selectedRecord.accommodations_and_services ? (
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Accommodations and Services</h3>
+                      <p className="mt-2 rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">{selectedRecord.accommodations_and_services}</p>
+                    </div>
+                  ) : null}
 
                   <div>
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Transportations</h3>

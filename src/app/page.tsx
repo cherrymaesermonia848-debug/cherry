@@ -21,6 +21,9 @@ type Destination = {
   facebookPage: string;
   gmail: string;
   transportations: Transportation[];
+  productsAndServices?: string;
+  information?: string;
+  accommodationsAndServices?: string;
 };
 
 type SelectedDestination = Destination & {
@@ -28,6 +31,21 @@ type SelectedDestination = Destination & {
 };
 
 type RawRow = Record<string, unknown>;
+
+function readOptionalText(row: RawRow, keys: string[]): string {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (Array.isArray(value)) {
+      const text = value
+        .map((item) => typeof item === "string" ? item.trim() : "")
+        .filter(Boolean)
+        .join("\n");
+      if (text) return text;
+    }
+  }
+  return "";
+}
 
 const menuItems = [
   {
@@ -355,6 +373,9 @@ export default function Home() {
                   facebookPage: (row.facebook_page as string) ?? "",
                   gmail: (row.gmail as string) ?? "",
                   transportations: parseTransportations(row.transportations),
+                  productsAndServices: readOptionalText(row, ["products_and_services", "products_services", "productsAndServices"]),
+                  information: readOptionalText(row, ["information", "barangay_information"]),
+                  accommodationsAndServices: readOptionalText(row, ["accommodations_and_services", "accommodations_services", "facilities", "amenities"]),
                 }))
               );
             }
@@ -1146,7 +1167,7 @@ export default function Home() {
               )}
 
               <div className="p-6 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="sticky top-0 z-20 -mx-6 flex flex-col gap-4 bg-white/95 px-6 py-3 backdrop-blur sm:flex-row sm:items-start sm:justify-between sm:-mx-8 sm:px-8">
                 <div>
                   <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0b6d36]">
                     {selectedDestination.category}
@@ -1165,11 +1186,11 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className={`mt-8 grid gap-6 ${isCafeDestination || isBarangayDestination ? "grid-cols-1" : "lg:grid-cols-[1.2fr_.8fr]"}`}>
-                <div className="grid grid-cols-1 gap-6">
+              <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
+                <div className="grid content-start gap-6">
                   <section>
                     <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Description</h3>
-                    {destinationText(`description-${selectedDestination.id}`, selectedDestination.description || "No description available.")}
+                    {destinationText(`description-${selectedDestination.id}`, selectedDestination.description || "Information not available.")}
                   </section>
                   {selectedDestination.history ? (
                     <section>
@@ -1177,9 +1198,28 @@ export default function Home() {
                       {destinationText(`history-${selectedDestination.id}`, selectedDestination.history)}
                     </section>
                   ) : null}
+
+                  {isCafeDestination && selectedDestination.productsAndServices ? (
+                    <section>
+                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Products and Services</h3>
+                      {destinationText(`products-${selectedDestination.id}`, selectedDestination.productsAndServices)}
+                    </section>
+                  ) : null}
+                  {isBarangayDestination && selectedDestination.information ? (
+                    <section>
+                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Information</h3>
+                      {destinationText(`information-${selectedDestination.id}`, selectedDestination.information)}
+                    </section>
+                  ) : null}
+                  {isResortOrBeachDestination && selectedDestination.accommodationsAndServices ? (
+                    <section>
+                      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Accommodations and Services</h3>
+                      {destinationText(`accommodations-${selectedDestination.id}`, selectedDestination.accommodationsAndServices)}
+                    </section>
+                  ) : null}
                 </div>
 
-                <div className={`border border-[#e2e8e4] bg-[#f7f7f7] p-5 ${isCafeDestination || isBarangayDestination ? "" : "lg:row-span-2"}`}>
+                <div className="border border-[#e2e8e4] bg-[#f7f7f7] p-5">
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#123126]">Visitor Details</h3>
                   <dl className="mt-4 space-y-4 text-sm">
                     <div>
