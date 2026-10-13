@@ -487,13 +487,16 @@ export default function Home() {
   const isCafeDestination = selectedDestination?.category === "Cafe";
   const isBarangayDestination = selectedDestination?.category === "Barangay";
   const isResortOrBeachDestination = selectedDestination?.category === "Resort" || selectedDestination?.category === "Beaches";
-  const destinationText = (key: string, value: string) => {
+  const destinationText = (key: string, value: string | null | undefined) => {
+    const safeValue = typeof value === "string" && value.trim().length > 0 ? value : "No description available.";
     const expanded = expandedDestinationText[key] ?? false;
-    const shouldCollapse = value.length > 300;
+    const shouldCollapse = safeValue.length > 300;
+    const displayValue = shouldCollapse && !expanded ? `${safeValue.slice(0, 300).trimEnd()}…` : safeValue;
+
     return (
       <>
         <p className="mt-3 whitespace-pre-line text-base leading-7 text-[#555555]">
-          {shouldCollapse && !expanded ? `${value.slice(0, 300).trimEnd()}…` : value}
+          {displayValue}
         </p>
         {shouldCollapse ? (
           <button
