@@ -592,13 +592,13 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white text-[#2f2f2f]">
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-[#0a7137] text-white shadow-sm">
         {/* Top nav bar - white, holds the menu, search, and mobile toggle */}
-        <div className="border-b border-[#e8e8e8] px-5 lg:px-10 xl:px-20">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-3">
+        <div className="border-b border-white/15 px-5 lg:px-10 xl:px-20">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-1.5">
             <a
               href="#home"
-              className="text-base font-black uppercase tracking-wide text-[#161616]"
+              className="text-base font-black uppercase tracking-wide text-white"
               aria-label="Home"
             >
               LGU
@@ -607,7 +607,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen((currentValue) => !currentValue)}
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-[#d8d8d8] text-[#0b6d36] transition hover:bg-[#f1f7f3] lg:hidden"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-white/30 text-white transition hover:bg-white/10 lg:hidden"
               aria-label="Toggle main navigation"
               aria-expanded={isMobileMenuOpen}
             >
@@ -623,11 +623,11 @@ export default function Home() {
                 isMobileMenuOpen ? "flex" : "hidden"
               } w-full flex-col gap-4 lg:flex lg:w-auto lg:flex-row lg:items-center lg:gap-6`}
             >
-              <ul className="flex flex-col gap-1 text-[15px] text-[#242424] lg:flex-row lg:items-center lg:gap-1">
+              <ul className="flex flex-col gap-1 text-[15px] text-white lg:flex-row lg:items-center lg:gap-1">
                 {menuItems.map((item) => (
                   <li className="group relative" key={item.label}>
                     <a
-                      className="flex h-10 items-center justify-between gap-2 rounded-sm px-3 font-semibold transition hover:bg-[#f1f7f3] hover:text-[#0b6d36] lg:justify-start lg:px-2"
+                      className="flex h-9 items-center justify-between gap-2 rounded-sm px-3 font-semibold text-white transition hover:bg-white/10 hover:text-white lg:justify-start lg:px-2"
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -711,14 +711,14 @@ export default function Home() {
         {/* Banner - colored, holds seal, title, tagline, and the live clock. Shrinks on scroll. */}
         <div
           className={`bg-[#0a7137] px-5 text-white transition-all duration-300 lg:px-10 xl:px-20 ${
-            isHeaderCompact ? "py-2 sm:py-3" : "py-6"
+            "py-2"
           }`}
         >
-          <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <a className="flex items-center gap-4 sm:gap-5" href="#home" aria-label="Municipality of Pontevedra">
               <span
                 className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-[#bb3338] bg-white shadow-sm transition-all duration-300 ${
-                  isHeaderCompact ? "size-11 sm:size-12" : "size-20 sm:size-24"
+                "size-11 sm:size-12"
                 }`}
               >
                 <Image
@@ -733,21 +733,21 @@ export default function Home() {
               <span className="min-w-0">
                 <span
                   className={`inline-block border-b border-white/50 pb-1 font-bold transition-all duration-300 ${
-                    isHeaderCompact ? "hidden text-xs sm:inline-block" : "text-sm"
+                    "hidden"
                   }`}
                 >
                   Republic of the Philippines
                 </span>
                 <span
                   className={`block font-black leading-none tracking-wide transition-all duration-300 ${
-                    isHeaderCompact ? "mt-0 text-xl sm:text-2xl" : "mt-2 text-4xl sm:text-5xl"
+                    "mt-0 text-xl sm:text-2xl"
                   }`}
                 >
                   PONTEVEDRA
                 </span>
                 <span
                   className={`block font-semibold text-[#d8f3df] transition-all duration-300 ${
-                    isHeaderCompact ? "hidden" : "mt-2 text-base sm:text-lg"
+                    "hidden"
                   }`}
                 >
                   City of Gentle People
@@ -756,7 +756,7 @@ export default function Home() {
             </a>
 
             <div className="text-left text-sm sm:text-right sm:text-base">
-              <p className={`font-bold transition-all duration-300 ${isHeaderCompact ? "hidden sm:block sm:text-xs" : ""}`}>
+              <p className="hidden font-bold sm:block sm:text-xs">
                 Philippine Standard Time:
               </p>
               <p
