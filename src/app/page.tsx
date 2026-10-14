@@ -158,7 +158,7 @@ const places = [
 ];
 
 const infoSections = [
-  ["about", "ABOUT PONTEVEDRA", "Pontevedra is a beautiful municipality of Pontevedra known for its culture, history, and tourism destinations."],
+  ["about", "ABOUT PONTEVEDRA", "Pontevedra is a first (1st) Class municipality in the fourth (4th) congressional district, which serves as an agricultural and agro-industrial hub in Central Negros. The specific Global Positioning System (GPS) of the Municipality of Pontevedra is 122.8694°E (longitude) and 10.754°N (latitude). The town is forty kilometers (40 km) from Bacolod City where the Provincial Capitol of Negros Occidental is situated. The traveling time from Provincial Capitol to Pontevedra typically takes approximately one hour.\nFor the administrative boundaries, the municipality is bounded in the north by the Municipality of San Enrique and the City of La Carlota, in the south by Municipality of Hinigaran, in the east by the Municipality of La Castellana, and in the west by the Guimaras Strait."],
   ["history", "History of Pontevedra", "Pontevedra derived its name from the city of Pontevedra in the Galicia Region of Spain. This claim is supported by archival materials housed in Spanish archives and various European public libraries, which confirm the Iberian origin of the name. When Spanish colonizers began settling the Island of Buglas (the former name of Negros) they are believed to have named the town after their place of origin in Spain, a gesture rooted in nostalgia and remembrance of their homeland. Over time, many of these settlers chose to remain permanently, contributing to the introduction of Spanish and European cultural traditions, governance systems, and most notably, the Christian faith."],
   ["culture", "Culture & Lifestyle","Experience warm community life, local traditions, food, festivals, and heritage routes."],
   ["festival", "Festivals", "Celebrate Kasalag Festival and other events that bring Pontevedra culture to life."],
@@ -852,7 +852,7 @@ export default function Home() {
         <section id={id} className="border-b border-[#e8e8e8] px-5 py-16 text-center lg:px-20" key={id}>
           <div className="mx-auto max-w-4xl">
             <h2 className="text-3xl font-black uppercase text-[#0b6d36]">{title}</h2>
-            <p className="mt-4 text-lg leading-8 text-[#666666]">{text}</p>
+            <p className="mt-4 whitespace-pre-line text-lg leading-8 text-[#666666]">{text}</p>
           </div>
         </section>
       ))}
