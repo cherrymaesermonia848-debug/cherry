@@ -91,7 +91,6 @@ const menuItems = [
     href: "#events",
     links: [
       ["Upcoming Events", "#events"],
-      ["Latest News", "#news"],
     ],
   },
   {
