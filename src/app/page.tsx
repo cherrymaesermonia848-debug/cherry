@@ -252,6 +252,7 @@ export default function Home() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [galleryViewerIndex, setGalleryViewerIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const place = places[placeIndex];
@@ -1138,16 +1139,71 @@ export default function Home() {
         <h2 className="mb-10 text-center text-4xl font-black text-[#0b6d36]">EXPERIENCE PONTEVEDRA</h2>
         <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {galleryImages.length > 0 ? (
-            galleryImages.map((image) => (
-              <div className="h-64 overflow-hidden shadow-sm" key={image.id}>
-                <img src={image.image_link} alt="Gallery" className="h-full w-full object-cover" />
-              </div>
+            galleryImages.map((image, index) => (
+              <button
+                type="button"
+                className="h-64 overflow-hidden shadow-sm"
+                key={image.id}
+                onClick={() => setGalleryViewerIndex(index)}
+                aria-label={`View gallery image ${index + 1} enlarged`}
+              >
+                <img src={image.image_link} alt={`Pontevedra gallery ${index + 1}`} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
+              </button>
             ))
           ) : (
             <p className="col-span-full text-center text-base text-[#666666]">No gallery images uploaded yet.</p>
           )}
         </div>
       </section>
+
+      {galleryViewerIndex !== null && galleryImages[galleryViewerIndex] ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pontevedra photo gallery"
+          onClick={() => setGalleryViewerIndex(null)}
+        >
+          <div className="relative flex h-full w-full max-w-6xl items-center justify-center" onClick={(event) => event.stopPropagation()}>
+            <img
+              src={galleryImages[galleryViewerIndex].image_link}
+              alt={`Pontevedra gallery image ${galleryViewerIndex + 1}`}
+              className="max-h-full max-w-full object-contain"
+            />
+            <button
+              type="button"
+              onClick={() => setGalleryViewerIndex(null)}
+              aria-label="Close enlarged image"
+              className="absolute right-0 top-0 grid size-11 place-items-center rounded-full bg-black/60 text-2xl font-bold text-white hover:bg-black/80"
+            >
+              ×
+            </button>
+            {galleryImages.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setGalleryViewerIndex((galleryViewerIndex - 1 + galleryImages.length) % galleryImages.length)}
+                  aria-label="Previous gallery image"
+                  className="absolute left-0 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/60 text-2xl font-bold text-white hover:bg-black/80"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGalleryViewerIndex((galleryViewerIndex + 1) % galleryImages.length)}
+                  aria-label="Next gallery image"
+                  className="absolute right-0 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/60 text-2xl font-bold text-white hover:bg-black/80"
+                >
+                  ›
+                </button>
+                <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white">
+                  {galleryViewerIndex + 1} / {galleryImages.length}
+                </span>
+              </>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <section id="contact" className="px-5 py-20 text-center lg:px-20">
         <h2 className="text-4xl font-black text-[#0b6d36]">CONTACT US</h2>
