@@ -259,6 +259,8 @@ export default function Home() {
   const skipMapResetRef = useRef(false);
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
   const [selectedMapId, setSelectedMapId] = useState("");
+  const [myLocationMapSource, setMyLocationMapSource] = useState<string | null>(null);
+  const [myLocationMessage, setMyLocationMessage] = useState("");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const defaultMapSource = `https://www.google.com/maps?q=${encodeURIComponent("Pontevedra, Negros Occidental, Philippines")}&output=embed`;
 
@@ -304,7 +306,35 @@ export default function Home() {
     ? `${selectedMapDestination.name} (${selectedMapCategory})`
     : "Pontevedra, Negros Occidental";
 
-  const selectedMapSource = selectedMapDestination?.iframeLink || defaultMapSource;
+  const selectedMapSource = myLocationMapSource || selectedMapDestination?.iframeLink || defaultMapSource;
+
+  const handleShowMyLocation = () => {
+    if (!navigator.geolocation) {
+      setMyLocationMessage("Your browser does not support location access.");
+      return;
+    }
+
+    setMyLocationMessage("Requesting your location…");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const coordinates = `${coords.latitude},${coords.longitude}`;
+        setMyLocationMapSource(
+          `https://www.google.com/maps?q=${encodeURIComponent(coordinates)}&output=embed`
+        );
+        setMyLocationMessage("Your location is shown on the map.");
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setMyLocationMessage("Location access was denied. Allow location access in your browser to see your position.");
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setMyLocationMessage("Your location is currently unavailable. Please try again.");
+        } else {
+          setMyLocationMessage("We couldn’t get your location. Please try again.");
+        }
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const categoryPreviewImageMap: Record<string, string> = {
     "Beaches": beachDestinations[0]?.images[0] ?? "",
@@ -458,6 +488,8 @@ export default function Home() {
       return;
     }
     setSelectedMapId("");
+    setMyLocationMapSource(null);
+    setMyLocationMessage("");
   }, [selectedMapCategory]);
 
   useEffect(() => {
@@ -1008,7 +1040,11 @@ export default function Home() {
                 {selectedMapCategory || "Name"}
                 <select
                   value={selectedMapId}
-                  onChange={(event) => setSelectedMapId(event.target.value)}
+                  onChange={(event) => {
+                    setSelectedMapId(event.target.value);
+                    setMyLocationMapSource(null);
+                    setMyLocationMessage("");
+                  }}
                   disabled={mapCategoryOptions.length === 0}
                   className="h-12 w-full border border-[#d8d8d8] bg-white px-4 text-sm font-bold normal-case tracking-normal text-[#222222] outline-none transition focus:border-[#0b6d36] focus:ring-2 focus:ring-[#d8f3df] disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -1022,6 +1058,19 @@ export default function Home() {
                   ))}
                 </select>
               </label>
+
+              <button
+                type="button"
+                onClick={handleShowMyLocation}
+                className="h-12 w-full bg-[#0b6d36] px-4 text-sm font-black text-white transition hover:bg-[#07552a]"
+              >
+                My Location
+              </button>
+              {myLocationMessage ? (
+                <p role="status" aria-live="polite" className="text-sm leading-6 text-[#555555]">
+                  {myLocationMessage}
+                </p>
+              ) : null}
             </div>
           </div>
 
