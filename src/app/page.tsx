@@ -191,7 +191,7 @@ const footerLinks = [
   ["Home", "#home"],
   ["About Us", "#about"],
   ["Explore", "#explore"],
-  ["Where To Stay", "#stay"],
+  ["Where", "#stay"],
   ["Events", "#events"],
   ["Contact Us", "#contact"],
 ];
