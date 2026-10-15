@@ -684,7 +684,7 @@ export default function Home() {
               className="text-base font-black uppercase tracking-wide text-white"
               aria-label="Home"
             >
-              LGU
+              TOURISM SMARTHERITAGE PONTEVEDRA
             </a>
 
             <button
