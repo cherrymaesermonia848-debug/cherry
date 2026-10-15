@@ -79,7 +79,7 @@ const menuItems = [
     ],
   },
   {
-    label: "Where To Stay",
+    label: "Where",
     href: "#stay",
     links: [
       ["Resorts", "#resorts"],
