@@ -76,13 +76,13 @@ const menuItems = [
       ["Cafe", "#cafe"],
       ["Heritage", "#heritage"],
       ["Tourist Spots", "#tourist"],
+      ["Resorts", "#resorts"],
     ],
   },
   {
     label: "Where",
     href: "#stay",
     links: [
-      ["Resorts", "#resorts"],
       ["Location Map", "#stay"],
     ],
   },
