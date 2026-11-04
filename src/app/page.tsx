@@ -1419,7 +1419,7 @@ export default function Home() {
             className="object-cover object-bottom"
           />
         </div>
-        <div className="border-b border-white/10 bg-[#0b6d36]/95 px-5 py-12 lg:px-20">
+        <div className="border-b border-white/10 bg-[#07552a] px-5 py-12 lg:px-20">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#cfead8]">Official Tourism Portal</p>
@@ -1429,7 +1429,7 @@ export default function Home() {
               </p>
             </div>
             <a
-              className="inline-flex h-13 items-center justify-center bg-white px-8 text-base font-black text-[#0b6d36] transition hover:bg-[#edf7f0]"
+              className="inline-flex h-13 items-center justify-center bg-white px-8 text-base font-black text-[#07552a] transition hover:bg-[#edf7f0]"
               href="#explore"
             >
               Start Exploring
@@ -1461,7 +1461,7 @@ export default function Home() {
               <div className="mt-6 flex gap-3">
                 {["f", "IG", "YT"].map((item) => (
                   <a
-                    className="grid size-10 place-items-center border border-white/20 text-sm font-black transition hover:border-white hover:bg-white hover:text-[#0b6d36]"
+                    className="grid size-10 place-items-center border border-white/20 text-sm font-black transition hover:border-white hover:bg-white hover:text-[#07552a]"
                     href="#home"
                     key={item}
                     aria-label={`${item} social link`}
