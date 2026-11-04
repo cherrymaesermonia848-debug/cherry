@@ -1397,8 +1397,29 @@ export default function Home() {
         </div>
       )}
 
-      <footer id="footer" className="bg-[#07351f] text-white">
-        <div className="border-b border-white/10 bg-[#0b6d36] px-5 py-12 lg:px-20">
+      <footer
+        id="footer"
+        className="relative isolate overflow-hidden bg-[#292a35] text-white"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 z-[-1] h-2/3 w-1/2"
+          style={{
+            backgroundImage: "radial-gradient(circle, rgba(190, 151, 46, .42) 1px, transparent 1.5px)",
+            backgroundSize: "20px 20px",
+            maskImage: "linear-gradient(45deg, black, transparent 78%)",
+          }}
+        />
+        <div className="pointer-events-none absolute bottom-0 right-0 z-[-1] hidden h-72 w-[min(35vw,30rem)] opacity-35 md:block">
+          <Image
+            src="/pontevedra-welcome-banner.png"
+            alt="Pontevedra Municipal Hall"
+            fill
+            sizes="(min-width: 768px) 35vw, 0px"
+            className="object-cover object-bottom"
+          />
+        </div>
+        <div className="border-b border-white/10 bg-[#292a35]/95 px-5 py-12 lg:px-20">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#cfead8]">Official Tourism Portal</p>
@@ -1408,7 +1429,7 @@ export default function Home() {
               </p>
             </div>
             <a
-              className="inline-flex h-13 items-center justify-center bg-white px-8 text-base font-black text-[#0b6d36] transition hover:bg-[#edf7f0]"
+              className="inline-flex h-13 items-center justify-center bg-white px-8 text-base font-black text-[#292a35] transition hover:bg-[#edf7f0]"
               href="#explore"
             >
               Start Exploring
@@ -1440,7 +1461,7 @@ export default function Home() {
               <div className="mt-6 flex gap-3">
                 {["f", "IG", "YT"].map((item) => (
                   <a
-                    className="grid size-10 place-items-center border border-white/20 text-sm font-black transition hover:border-white hover:bg-white hover:text-[#0b6d36]"
+                    className="grid size-10 place-items-center border border-white/20 text-sm font-black transition hover:border-white hover:bg-white hover:text-[#292a35]"
                     href="#home"
                     key={item}
                     aria-label={`${item} social link`}
