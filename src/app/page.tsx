@@ -206,6 +206,53 @@ const visitorLinks = [
   ["Location Map", "#stay"],
 ];
 
+const footerSocialLinks = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/municipalityofpontevedra/",
+    icon: "facebook",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/municipalityofpontevedra/",
+    icon: "instagram",
+  },
+  {
+    label: "Official website",
+    href: "https://pontevedra.gov.ph",
+    icon: "website",
+  },
+  {
+    label: "Call Pontevedra Tourism Office",
+    href: "tel:+639123456789",
+    icon: "phone",
+  },
+];
+
+function FooterSocialIcon({ name }: { name: string }) {
+  const common = {
+    "aria-hidden": true as const,
+    className: "size-5",
+    fill: "none",
+    stroke: "currentColor",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    strokeWidth: 1.8,
+    viewBox: "0 0 24 24",
+  };
+
+  if (name === "facebook") {
+    return <svg {...common} fill="currentColor" stroke="none"><path d="M13.2 21v-8.2H16l.4-3.2h-3.2V7.5c0-.9.3-1.5 1.6-1.5h1.7V3.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.3H7v3.2h2.8V21h3.4Z" /></svg>;
+  }
+  if (name === "instagram") {
+    return <svg {...common}><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.7" cy="6.6" r=".8" fill="currentColor" stroke="none" /></svg>;
+  }
+  if (name === "phone") {
+    return <svg {...common}><path d="M21 16.5v3a1.5 1.5 0 0 1-1.6 1.5A18.8 18.8 0 0 1 11.2 18a18.5 18.5 0 0 1-5.7-5.7 18.8 18.8 0 0 1-3-8.2A1.5 1.5 0 0 1 4 2.5h3a1.5 1.5 0 0 1 1.5 1.3c.1 1 .4 1.9.7 2.8a1.5 1.5 0 0 1-.3 1.6L7.6 9.5a15 15 0 0 0 6.9 6.9l1.3-1.3a1.5 1.5 0 0 1 1.6-.3c.9.3 1.8.6 2.8.7a1.5 1.5 0 0 1 .8 1Z" /></svg>;
+  }
+  return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M3.5 9h17M3.5 15h17M11 3.2a15 15 0 0 0 0 17.6M13 3.2a15 15 0 0 1 0 17.6" /></svg>;
+}
+
 function FadeImage({
   src,
   alt,
@@ -1458,15 +1505,17 @@ export default function Home() {
               <p className="mt-5 max-w-sm text-sm leading-7 text-[#cfead8]">
                 Municipality of Pontevedra, Negros Occidental, Republic of the Philippines.
               </p>
-              <div className="mt-6 flex gap-3">
-                {["f", "IG", "YT"].map((item) => (
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {footerSocialLinks.map((item) => (
                   <a
-                    className="grid size-10 place-items-center border border-white/20 text-sm font-black transition hover:border-white hover:bg-white hover:text-[#07552a]"
-                    href="#home"
-                    key={item}
-                    aria-label={`${item} social link`}
+                    className="grid size-11 shrink-0 place-items-center rounded-full border border-[#3b7852] bg-[#0b442b] text-[#cfead8] transition duration-200 ease-out hover:scale-105 hover:border-[#8dc99c] hover:bg-[#17663c] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a8dbb5]"
+                    href={item.href}
+                    key={item.label}
+                    aria-label={item.label}
+                    target={item.icon === "phone" ? undefined : "_blank"}
+                    rel={item.icon === "phone" ? undefined : "noopener noreferrer"}
                   >
-                    {item}
+                    <FooterSocialIcon name={item.icon} />
                   </a>
                 ))}
               </div>
