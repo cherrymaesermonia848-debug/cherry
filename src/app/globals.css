@@ -53,3 +53,27 @@ body::-webkit-scrollbar {
   height: 0;
   width: 0;
 }
+
+html.a11y-readable-font body :not(.accessibility-widget):not(.accessibility-widget *) {
+  font-family: Verdana, Arial, sans-serif !important;
+  letter-spacing: 0.025em;
+}
+
+html.a11y-highlight-links body a:not(.accessibility-widget a) {
+  background-color: #fff3a6 !important;
+  color: #102d70 !important;
+  outline: 2px solid #102d70;
+  outline-offset: 2px;
+  text-decoration: underline !important;
+}
+
+html.a11y-high-contrast body :not(.accessibility-widget):not(.accessibility-widget *) {
+  color: #fff !important;
+  border-color: #fff !important;
+  text-shadow: none !important;
+}
+
+html.a11y-high-contrast body a:not(.accessibility-widget a) {
+  color: #fff36b !important;
+  text-decoration: underline !important;
+}
