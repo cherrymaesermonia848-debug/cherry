@@ -556,10 +556,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const showPlace = (index: number) => {
-    setPlaceIndex(index);
-    document.querySelector(places[index].href)?.scrollIntoView({ behavior: "smooth" });
-  };
+  const showPlace = (index: number) => setPlaceIndex(index);
   const prevPlace = () => setPlaceIndex((current) => (current === 0 ? places.length - 1 : current - 1));
   const nextPlace = () => setPlaceIndex((current) => (current === places.length - 1 ? 0 : current + 1));
   const toggleSection = (id: string) => {
@@ -935,55 +932,53 @@ export default function Home() {
         </section>
       ))}
 
-      <section id="explore" className="relative isolate min-h-[660px] overflow-hidden px-5 py-20 text-white lg:px-20">
-       {categoryPreviewImageMap[place.category] ? (
-          <img
-            src={categoryPreviewImageMap[place.category]}
-            alt={place.title}
-            className="absolute inset-0 -z-30 h-full w-full object-cover"
-          />
+      <section id="explore" className="relative isolate flex min-h-[calc(100svh-7rem)] overflow-hidden bg-[#10281d] px-5 py-14 text-white sm:px-8 lg:min-h-[min(820px,calc(100svh-7rem))] lg:items-center lg:px-16">
+        {categoryPreviewImageMap[place.category] ? (
+          <img key={place.category} src={categoryPreviewImageMap[place.category]} alt="" className="absolute inset-0 -z-30 h-full w-full object-cover transition-opacity duration-700" />
         ) : (
           <div className={`absolute inset-0 -z-30 bg-gradient-to-br ${place.fallback}`} />
         )}
-        <div className="absolute inset-0 -z-20 bg-black/55" />
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
-          <div className="pt-16">
-            <h1 className="text-6xl font-black sm:text-7xl">{place.title}</h1>
-            <p className="mt-6 max-w-xl text-xl leading-9">{place.desc}</p>
-            <a className="mt-8 inline-flex rounded-full bg-[#0b8c47] px-9 py-4 text-lg font-bold hover:bg-[#08733a]" href={place.href}>
-              See More
+        <div className="absolute inset-0 -z-20 bg-gradient-to-r from-black/75 via-black/45 to-black/35" />
+        <div className="absolute inset-0 -z-10 bg-black/15" />
+
+        <div className="mx-auto grid w-full max-w-[1500px] items-center gap-10 pb-14 lg:grid-cols-[.82fr_1.18fr] lg:gap-8 lg:pb-12">
+          <div key={place.title} className="animate-[ponte-fade_.55s_ease-out] lg:pl-2">
+            <p className="mb-4 text-xs font-bold uppercase tracking-[.32em] text-[#bce5c8]">Discover Pontevedra</p>
+            <h1 className="max-w-xl text-5xl font-black leading-[.98] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl">{place.title}</h1>
+            <p className="mt-6 max-w-lg text-base leading-7 text-white/90 sm:text-lg sm:leading-8">{place.desc}</p>
+            <a className="mt-8 inline-flex items-center rounded-sm bg-[#0b8c47] px-7 py-3.5 text-base font-bold text-white shadow-lg transition hover:bg-[#08733a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" href={place.href}>
+              See More <span className="ml-3" aria-hidden="true">→</span>
             </a>
           </div>
 
-          <div>
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {places.map((item, index) => (
+          <div className="relative flex min-w-0 items-center justify-center gap-3 sm:gap-5 lg:justify-end lg:gap-6">
+            {[-1, 0, 1].map((offset) => {
+              const index = (placeIndex + offset + places.length) % places.length;
+              const item = places[index];
+              const image = categoryPreviewImageMap[item.category];
+              const active = offset === 0;
+              return (
                 <button
-                  className={`overflow-hidden rounded-[4px] bg-white text-left text-[#222222] shadow-xl transition hover:-translate-y-1 ${
-                    index === placeIndex ? "ring-4 ring-[#0b8c47]" : ""
-                  }`}
-                  key={item.title}
+                  key={offset}
                   type="button"
+                  aria-label={`Show ${item.title}`}
+                  aria-current={active ? "true" : undefined}
                   onClick={() => showPlace(index)}
+                  className={`group relative h-[min(54vh,390px)] min-h-[230px] min-w-0 flex-1 overflow-hidden rounded-2xl shadow-2xl transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${active ? "z-10 max-w-[340px] scale-100 opacity-100" : "max-w-[270px] scale-[.88] opacity-75 hover:scale-[.92] hover:opacity-100"} ${offset === -1 ? "origin-right" : offset === 1 ? "origin-left" : ""}`}
                 >
-                  {categoryPreviewImageMap[item.category] ? (
-                    <img src={categoryPreviewImageMap[item.category]} alt={item.title} className="h-40 w-full object-cover" />
-                  ) : (
-                    <span className={`block h-40 bg-gradient-to-br ${item.fallback}`} />
-                  )}
-                  <span className="block p-4 text-xl font-black">{item.title}</span>
+                  {image ? <img key={item.title} src={image} alt={item.title} className="absolute inset-0 h-full w-full animate-[ponte-fade_.65s_ease-out] object-cover transition duration-700 group-hover:scale-105" /> : <span key={item.title} className={`absolute inset-0 animate-[ponte-fade_.65s_ease-out] bg-gradient-to-br ${item.fallback}`} />}
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                  <span className={`absolute bottom-0 left-0 right-0 p-4 text-left text-sm font-black tracking-wide sm:p-5 sm:text-lg ${active ? "opacity-100" : "opacity-85"}`}>{item.title}</span>
                 </button>
-              ))}
-            </div>
-            <div className="mt-8 flex gap-3">
-              <button className="size-12 bg-white text-2xl font-black text-[#0b6d36]" type="button" onClick={prevPlace}>
-                &lt;
-              </button>
-              <button className="size-12 bg-white text-2xl font-black text-[#0b6d36]" type="button" onClick={nextPlace}>
-                &gt;
-              </button>
-            </div>
+              );
+            })}
           </div>
+        </div>
+
+        <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3">
+          <button aria-label="Previous destination" className="grid size-11 place-items-center rounded-sm bg-white text-xl font-bold text-[#0b6d36] shadow-lg transition hover:bg-[#dff2e5]" type="button" onClick={prevPlace}>←</button>
+          <span className="min-w-12 text-center text-xs font-semibold tracking-widest text-white/80">{String(placeIndex + 1).padStart(2, "0")} / {String(places.length).padStart(2, "0")}</span>
+          <button aria-label="Next destination" className="grid size-11 place-items-center rounded-sm bg-white text-xl font-bold text-[#0b6d36] shadow-lg transition hover:bg-[#dff2e5]" type="button" onClick={nextPlace}>→</button>
         </div>
       </section>
 

@@ -26,6 +26,11 @@ body {
   overflow-x: hidden;
 }
 
+@keyframes ponte-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 html {
   -ms-overflow-style: none;
   scrollbar-width: none;
