@@ -16,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <a className="skip-to-main" href="#main-content">Skip to main content</a>
         {children}
         <div className="accessibility-widget"><AccessibilityWidget /></div>
       </body>

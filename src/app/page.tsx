@@ -300,6 +300,7 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [galleryViewerIndex, setGalleryViewerIndex] = useState<number | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const place = places[placeIndex];
@@ -580,6 +581,34 @@ export default function Home() {
     );
   };
   const closeDestinationDetails = () => setSelectedDestination(null);
+
+  useEffect(() => {
+    if (galleryViewerIndex === null && !selectedDestination) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const modal = modalRef.current;
+    const focusable = () => modal?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    window.setTimeout(() => (focusable()?.[0] ?? modal)?.focus(), 0);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setGalleryViewerIndex(null);
+        setSelectedDestination(null);
+      }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items?.length) { event.preventDefault(); modal?.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      window.setTimeout(() => previousFocus?.focus(), 0);
+    };
+  }, [galleryViewerIndex, selectedDestination]);
   const isCafeDestination = selectedDestination?.category === "Cafe";
   const isBarangayDestination = selectedDestination?.category === "Barangay";
   const isResortDestination = selectedDestination?.category === "Resort";
@@ -718,7 +747,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-[#2f2f2f]">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-white text-[#2f2f2f]">
       <header className="sticky top-0 z-50 bg-[#0a7137] text-white shadow-sm">
         {/* Top nav bar - white, holds the menu, search, and mobile toggle */}
         <div className="border-b border-white/15 px-5 lg:px-10 xl:px-20">
@@ -1200,10 +1229,12 @@ export default function Home() {
 
       {galleryViewerIndex !== null && galleryImages[galleryViewerIndex] ? (
         <div
+          ref={modalRef}
           className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 sm:p-8"
           role="dialog"
           aria-modal="true"
           aria-label="Pontevedra photo gallery"
+          tabIndex={-1}
           onClick={() => setGalleryViewerIndex(null)}
         >
           <div className="relative flex h-full w-full max-w-6xl items-center justify-center" onClick={(event) => event.stopPropagation()}>
@@ -1255,7 +1286,7 @@ export default function Home() {
       </section>
 
       {selectedDestination && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5 py-8" role="dialog" aria-modal="true" aria-labelledby="destination-title">
+        <div ref={modalRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5 py-8" role="dialog" aria-modal="true" aria-labelledby="destination-title" tabIndex={-1}>
           <div className="max-h-full w-full max-w-6xl overflow-y-auto bg-white shadow-2xl">
               {selectedDestination.images.length > 0 ? (
                 <>
