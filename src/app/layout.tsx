@@ -18,7 +18,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <a className="skip-to-main" href="#main-content">Skip to main content</a>
         {children}
-        <div className="accessibility-widget"><AccessibilityWidget /></div>
+        <AccessibilityWidget />
       </body>
     </html>
   );

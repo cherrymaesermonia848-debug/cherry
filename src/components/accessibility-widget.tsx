@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Settings = {
   textScale: number;
@@ -30,8 +31,13 @@ export default function AccessibilityWidget() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaults);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setHeaderSlot(document.getElementById("accessibility-widget-slot"));
+  }, []);
 
   useEffect(() => {
     try {
@@ -85,10 +91,10 @@ export default function AccessibilityWidget() {
     ["Large cursor", "largeCursor"],
   ];
 
-  return (
-    <div className="fixed bottom-3 left-3 z-[60] sm:bottom-4 sm:left-4">
+  const widget = (
+    <div className={`accessibility-widget z-[60] shrink-0 ${headerSlot ? "relative" : "fixed bottom-3 left-3 sm:bottom-4 sm:left-4"}`}>
       {isOpen && (
-        <section id="accessibility-panel" aria-labelledby="accessibility-panel-title" className="mb-3 max-h-[min(78vh,44rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
+        <section id="accessibility-panel" aria-labelledby="accessibility-panel-title" className="absolute bottom-full right-0 mb-3 max-h-[min(78vh,44rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 id="accessibility-panel-title" className="text-lg font-bold">Accessibility</h2>
             <button ref={closeButtonRef} type="button" onClick={togglePanel} aria-label="Close accessibility settings" className="grid size-9 place-items-center rounded-md text-xl text-slate-700 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">×</button>
@@ -126,6 +132,7 @@ export default function AccessibilityWidget() {
       </div>
     </div>
   );
+  return headerSlot ? createPortal(widget, headerSlot) : widget;
 }
 
 function Switch({ label, checked, onClick }: { label: string; checked: boolean; onClick: () => void }) {

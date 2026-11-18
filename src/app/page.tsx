@@ -814,7 +814,8 @@ export default function Home() {
                 ))}
               </ul>
 
-              <div className="relative w-full lg:w-64">
+              <div className="flex w-full min-w-0 items-center gap-2 lg:w-auto">
+              <div className="relative min-w-0 flex-1 lg:w-64 lg:flex-none">
                 <form
                   className="flex h-11 w-full min-w-0 border border-[#d8d8d8] bg-white"
                   onSubmit={handleSearchSubmit}
@@ -866,6 +867,8 @@ export default function Home() {
                     )}
                   </div>
                 )}
+              </div>
+              <div id="accessibility-widget-slot" className="shrink-0" />
               </div>
             </div>
           </div>
