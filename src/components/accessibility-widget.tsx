@@ -91,7 +91,7 @@ export default function AccessibilityWidget() {
     ["Large cursor", "largeCursor"],
   ];
 
-  const widget = (
+  return (
     <div className={`accessibility-widget z-[60] shrink-0 ${headerSlot ? "relative" : "fixed bottom-3 left-3 sm:bottom-4 sm:left-4"}`}>
       {isOpen && (
         <section id="accessibility-panel" aria-labelledby="accessibility-panel-title" className="absolute bottom-full right-0 mb-3 max-h-[min(78vh,44rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
