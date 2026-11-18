@@ -868,7 +868,6 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <div id="accessibility-widget-slot" className="shrink-0" />
               </div>
             </div>
           </div>
