@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import AccessibilityWidget from "@/components/accessibility-widget";
 
 export const metadata: Metadata = {
   title: "Pontevedra Tourism Portal",
@@ -18,7 +17,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <a className="skip-to-main" href="#main-content">Skip to main content</a>
         {children}
-        <AccessibilityWidget />
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { useEffect, useState, FormEvent, useRef } from "react";
 import json_route from "@/config/json_route.json";
 import { Fetch_to } from "@/utilities";
 import Image from "next/image";
+import AccessibilityWidget from "@/components/accessibility-widget";
 
 type Transportation = {
   type: string;
@@ -868,6 +869,7 @@ export default function Home() {
                   </div>
                 )}
               </div>
+              <AccessibilityWidget />
               </div>
             </div>
           </div>
