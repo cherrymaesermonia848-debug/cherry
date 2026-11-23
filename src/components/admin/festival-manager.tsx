@@ -132,7 +132,7 @@ export default function FestivalManager() {
     setError("");
     setMessage("");
     const fields: Record<string, string | number> = {
-      action: mode,
+      action: mode === "edit" ? "update" : "create",
       ...(editing ? { id: editing.id } : {}),
       name: form.name,
       short_description: form.short_description,
