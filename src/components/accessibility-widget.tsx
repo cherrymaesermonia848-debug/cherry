@@ -57,14 +57,15 @@ export default function AccessibilityWidget() {
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === "F2") {
+      if (event.ctrlKey && (event.key === "F2" || event.code === "F2")) {
         event.preventDefault();
+        event.stopPropagation();
         setIsOpen((open) => !open);
       }
       if (event.key === "Escape") setIsOpen(false);
     };
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
+    window.addEventListener("keydown", handleShortcut, true);
+    return () => window.removeEventListener("keydown", handleShortcut, true);
   }, []);
 
   useEffect(() => { if (isOpen) closeButtonRef.current?.focus(); }, [isOpen]);
@@ -86,7 +87,7 @@ export default function AccessibilityWidget() {
   ];
 
   return (
-    <div className="accessibility-widget relative z-[60] shrink-0">
+    <div className="accessibility-widget relative z-[60] shrink-0" onClick={(event) => event.stopPropagation()}>
       {isOpen && (
         <section id="accessibility-panel" aria-labelledby="accessibility-panel-title" className="absolute bottom-full right-0 mb-3 max-h-[min(78vh,44rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
