@@ -89,40 +89,40 @@ export default function AccessibilityWidget() {
   return (
     <div className="accessibility-widget relative z-[60] shrink-0" onClick={(event) => event.stopPropagation()}>
       {isOpen && (
-        <section id="accessibility-panel" aria-labelledby="accessibility-panel-title" className="absolute right-0 top-full mt-3 max-h-[min(78vh,44rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl sm:p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 id="accessibility-panel-title" className="text-lg font-bold">Accessibility</h2>
-            <button ref={closeButtonRef} type="button" onClick={togglePanel} aria-label="Close accessibility settings" className="grid size-9 place-items-center rounded-md text-xl text-slate-700 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">×</button>
+        <section id="accessibility-panel" aria-labelledby="accessibility-panel-title" className="absolute right-0 top-full mt-2 max-h-[min(78vh,44rem)] w-[min(21rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 text-slate-900 shadow-2xl sm:p-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 id="accessibility-panel-title" className="text-base font-bold">Accessibility</h2>
+            <button ref={closeButtonRef} type="button" onClick={togglePanel} aria-label="Close accessibility settings" className="grid size-8 place-items-center rounded-md text-lg text-slate-700 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">×</button>
           </div>
-          <div className="mb-3 flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+          <div className="mb-2 flex items-center justify-between rounded-lg border border-slate-200 px-2.5 py-1.5">
             <span className="text-sm font-medium">Text size <span className="text-slate-500">{settings.textScale}%</span></span>
-            <span className="flex gap-2">
-              <button type="button" aria-label="Decrease text size" onClick={() => update("textScale", Math.max(80, settings.textScale - 10))} className="size-9 rounded-md border border-slate-300 text-lg font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">−</button>
-              <button type="button" aria-label="Increase text size" onClick={() => update("textScale", Math.min(140, settings.textScale + 10))} className="size-9 rounded-md border border-slate-300 text-lg font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">+</button>
+            <span className="flex gap-1.5">
+              <button type="button" aria-label="Decrease text size" onClick={() => update("textScale", Math.max(80, settings.textScale - 10))} className="size-8 rounded-md border border-slate-300 text-base font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">−</button>
+              <button type="button" aria-label="Increase text size" onClick={() => update("textScale", Math.min(140, settings.textScale + 10))} className="size-8 rounded-md border border-slate-300 text-base font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">+</button>
             </span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {switches.map(([label, key]) => <Switch key={key} label={label} checked={Boolean(settings[key])} onClick={() => update(key, !settings[key])} />)}
           </div>
-          <details className="mt-2 rounded-lg" open={moreOpen} onToggle={(event) => setMoreOpen(event.currentTarget.open)}>
-            <summary className="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">More settings</summary>
-            <div className="mt-1 space-y-1">
+          <details className="mt-1 rounded-lg" open={moreOpen} onToggle={(event) => setMoreOpen(event.currentTarget.open)}>
+            <summary className="cursor-pointer rounded-lg px-2.5 py-2 text-sm font-semibold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">More settings</summary>
+            <div className="mt-0.5 space-y-0.5">
               <Switch label="Increase line spacing" checked={settings.lineSpacing} onClick={() => update("lineSpacing", !settings.lineSpacing)} />
               <Switch label="Increase text spacing" checked={settings.textSpacing} onClick={() => update("textSpacing", !settings.textSpacing)} />
-              <div className="rounded-lg px-3 py-2 text-sm leading-relaxed">
+              <div className="rounded-lg px-2.5 py-1.5 text-xs leading-relaxed">
                 <h3 className="font-semibold">Keyboard navigation</h3>
                 <p className="mt-1">Tab: next item · Shift + Tab: previous item · Enter: activate · Space: toggle or activate · Escape: close a panel or dialog.</p>
               </div>
             </div>
           </details>
-          <button type="button" onClick={resetSettings} className="mt-3 min-h-11 w-full rounded-lg border border-blue-700 px-3 text-sm font-bold text-blue-800 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">Reset accessibility settings</button>
-          <p className="mt-3 text-center text-xs text-slate-500">Keyboard shortcut: Ctrl + F2</p>
+          <button type="button" onClick={resetSettings} className="mt-2 min-h-10 w-full rounded-lg border border-blue-700 px-2.5 text-sm font-bold text-blue-800 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">Reset accessibility settings</button>
+          <p className="mt-2 text-center text-xs text-slate-500">Keyboard shortcut: Ctrl + F2</p>
         </section>
       )}
-      <div className="relative flex w-[76px] justify-center pt-2">
-        <span aria-hidden="true" className="absolute left-1/2 top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-t-sm border border-white bg-[#0875c9] px-1.5 py-0.5 text-xs font-black leading-4 text-white shadow">CTRL+F2</span>
-        <button ref={triggerRef} type="button" aria-label={isOpen ? "Close accessibility settings" : "Open accessibility settings"} aria-expanded={isOpen} aria-controls="accessibility-panel" onClick={togglePanel} className="grid h-[70px] w-[76px] place-items-center rounded-b-[20px] rounded-t-sm border-2 border-white bg-[#0875c9] text-white shadow-lg transition hover:bg-[#0564ad] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-blue-800">
-          <svg viewBox="0 0 48 48" aria-hidden="true" className="h-11 w-11 fill-current"><circle cx="24" cy="8" r="5" /><path d="M8 15.5c0-1.2 1.2-2.1 2.4-1.8L24 17l13.6-3.3c1.2-.3 2.4.6 2.4 1.8s-.8 2.1-2 2.4L27 20.7v5.1l8.2 5.4c.9.6 1.2 1.8.6 2.8-.6.9-1.8 1.2-2.8.6L26 30v6.3l3.5 8.3c.5 1.1 0 2.3-1.1 2.8-1.1.5-2.3 0-2.8-1.1L24 41.2l-1.6 5.1c-.4 1.1-1.6 1.7-2.7 1.3s-1.7-1.6-1.3-2.7l3.4-8.6V30l-6.7 4.8c-1 .7-2.2.5-2.9-.4-.7-1-.5-2.2.4-2.9l8-5.7v-5.1l-11-2.8c-1-.3-1.6-1.3-1.6-2.4Z" /></svg>
+      <div className="relative flex w-[60px] justify-center pt-1">
+        <span aria-hidden="true" className="absolute left-1/2 top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-t-sm border border-white bg-[#0875c9] px-1 py-0.5 text-[10px] font-black leading-3 text-white shadow">CTRL+F2</span>
+        <button ref={triggerRef} type="button" aria-label={isOpen ? "Close accessibility settings" : "Open accessibility settings"} aria-expanded={isOpen} aria-controls="accessibility-panel" onClick={togglePanel} className="grid h-14 w-[60px] place-items-center rounded-b-2xl rounded-t-sm border-2 border-white bg-[#0875c9] text-white shadow-lg transition hover:bg-[#0564ad] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-blue-800">
+          <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8 fill-current"><circle cx="24" cy="8" r="5" /><path d="M8 15.5c0-1.2 1.2-2.1 2.4-1.8L24 17l13.6-3.3c1.2-.3 2.4.6 2.4 1.8s-.8 2.1-2 2.4L27 20.7v5.1l8.2 5.4c.9.6 1.2 1.8.6 2.8-.6.9-1.8 1.2-2.8.6L26 30v6.3l3.5 8.3c.5 1.1 0 2.3-1.1 2.8-1.1.5-2.3 0-2.8-1.1L24 41.2l-1.6 5.1c-.4 1.1-1.6 1.7-2.7 1.3s-1.7-1.6-1.3-2.7l3.4-8.6V30l-6.7 4.8c-1 .7-2.2.5-2.9-.4-.7-1-.5-2.2.4-2.9l8-5.7v-5.1l-11-2.8c-1-.3-1.6-1.3-1.6-2.4Z" /></svg>
         </button>
       </div>
     </div>
@@ -130,7 +130,7 @@ export default function AccessibilityWidget() {
 }
 
 function Switch({ label, checked, onClick }: { label: string; checked: boolean; onClick: () => void }) {
-  return <button type="button" role="switch" aria-label={label} aria-checked={checked} onClick={onClick} className="flex min-h-11 w-full items-center justify-between rounded-lg px-3 text-left text-sm font-medium hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">
-    {label}<span aria-hidden="true" className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-blue-700" : "bg-slate-300"}`}><span className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${checked ? "left-[22px]" : "left-0.5"} `} /></span>
+  return <button type="button" role="switch" aria-label={label} aria-checked={checked} onClick={onClick} className="flex min-h-10 w-full items-center justify-between rounded-lg px-2.5 text-left text-sm font-medium hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">
+    {label}<span aria-hidden="true" className={`relative h-5 w-9 rounded-full transition ${checked ? "bg-blue-700" : "bg-slate-300"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-all ${checked ? "left-[18px]" : "left-0.5"} `} /></span>
   </button>;
 }
