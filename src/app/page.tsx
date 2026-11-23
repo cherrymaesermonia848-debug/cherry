@@ -161,7 +161,7 @@ const infoSections = [
   ["about", "ABOUT PONTEVEDRA", "Pontevedra is a first (1st) Class municipality in the fourth (4th) congressional district, which serves as an agricultural and agro-industrial hub in Central Negros. The specific Global Positioning System (GPS) of the Municipality of Pontevedra is 122.8694°E (longitude) and 10.754°N (latitude). The town is forty kilometers (40 km) from Bacolod City where the Provincial Capitol of Negros Occidental is situated. The traveling time from Provincial Capitol to Pontevedra typically takes approximately one hour.\nFor the administrative boundaries, the municipality is bounded in the north by the Municipality of San Enrique and the City of La Carlota, in the south by Municipality of Hinigaran, in the east by the Municipality of La Castellana, and in the west by the Guimaras Strait."],
   ["history", "History of Pontevedra", "The history of Pontevedra is traced back from the Spanish colonial period, when the Spaniards arrived in Negros Island (known as Buglas), in 1565. Negros was divided into eight encomiendas, establishing the early Spanish settlements including Marayo. Due to the limited number of priests, Marayo was placed under the jurisdiction of several visitas and parishes, including Binalbagan, Tocgaguan (now E.B Magalona), Ilog, Hinigaran, and Bago.\nIn 1848, when Negros was placed under the Recollect Friars and later became a politico-military province. The sugar industry expanded rapidly. This expansion contributed to the growth of agricultural communities. Marayo became an autonomous town and was renamed Pontevedra through Spanish reducción policy which led to the consolidation of scattered settlements in 1958. The policy encountered resistance from the Mampunay communities in the uplands. Furthermore, from 1868 to 1870, Pontevedra’s religious and educational institutions developed further, including the establishment of schools and the elevation of the settlement from visita to mission and eventually to parish.\nBy the late nineteenth century, Pontevedra had developed extensive sugarcane plantations, several haciendas, and twelve iron steam mills. In 1895, approximately 2,000 hectares were designated through a Royal Order as part of the Caja de Communidad, which later became known as the Agricultural Colony of Antipolo. The Spanish rule in Pontevedra ended during the Negros uprising on November 5, 1898.\nUnder the American rule, Pontevedra was formally established as a municipality on January 31, 1901, pursuant to Philippine Commission Act No. 82. The municipality continued to develop as an agricultural community, while local government, education, and industries gradually progressed. Pontevedra was also affected by the Japanese occupation from 1941 to 1945, after which post-war reconstruction and development resumed. Among the notable developments were the establishment of St. Michael Academy in 1964 and the operation of a major lime factory in 1969, which supplied sugar centrals in Negros and nearby areas.\nA significant part of Pontevedra’s socio-economic history is the Legua Communal, which originated from the Caja de Communidad and served as a common agricultural area for parishioners. Over time, changes in land tenure resulted in portions of the land being inherited or acquired by private families. The area also became associated with agricultural enterprises, including a large coffee plantation established by the Uriarte family in 1947. Eventually, the municipal government assumed the role formerly held by the Church in administering portions of the communal lands and facilitated arrangements for occupant-lessees to acquire land through amortization with the Land Bank of the Philippines. Today, the Legua Communal encompasses the upland barangays of Burgos, Buenavista Rizal, Gomez, Mabini, and Zamora.\nOverall, Pontevedra’s development has been shaped by its colonial history, agricultural economy, particularly sugarcane production, changing land-tenure arrangements, local governance, education, industry, and the continuing development of its lowland and upland communities."],
   ["culture", "Culture & Lifestyle","Experience warm community life, local traditions, food, festivals, and heritage routes."],
-  ["festival", "Festivals", "Celebrate Handurayo Festival and the community performances that bring Pontevedra culture to life."],
+  ["festival", "Festivals", "Celebrate Kasalag Festival and other events that bring Pontevedra culture to life."],
 ];
 
 type NewsItem = {
@@ -328,13 +328,15 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [publishedFestivals, setPublishedFestivals] = useState<PublishedFestival[]>([]);
-  const [festivalIndex, setFestivalIndex] = useState(0);
   const [galleryViewerIndex, setGalleryViewerIndex] = useState<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const place = places[placeIndex];
-  const activeFestival = publishedFestivals[festivalIndex] ?? publishedFestivals[0] ?? null;
+  const featuredFestival = publishedFestivals.find((festival) => festival.featured) ?? publishedFestivals[0] ?? null;
+  const otherFestivals = featuredFestival
+    ? publishedFestivals.filter((festival) => festival.id !== featuredFestival.id)
+    : [];
   const visiblePlaceCount = 3;
   const skipMapResetRef = useRef(false);
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
@@ -565,8 +567,9 @@ export default function Home() {
       if (response.success) {
         const rows = response.data?.message as PublishedFestival[] | undefined;
         if (Array.isArray(rows)) {
-          setPublishedFestivals(rows.filter((festival) => festival.status === "published"));
-          setFestivalIndex(0);
+          setPublishedFestivals(rows
+            .filter((festival) => festival.status === "published")
+            .sort((first, second) => Number(second.featured) - Number(first.featured)));
         }
       }
     }
@@ -604,8 +607,6 @@ export default function Home() {
   const showPlace = (index: number) => setPlaceIndex(index);
   const prevPlace = () => setPlaceIndex((current) => (current === 0 ? places.length - 1 : current - 1));
   const nextPlace = () => setPlaceIndex((current) => (current === places.length - 1 ? 0 : current + 1));
-  const prevFestival = () => setFestivalIndex((current) => (current === 0 ? publishedFestivals.length - 1 : current - 1));
-  const nextFestival = () => setFestivalIndex((current) => (current === publishedFestivals.length - 1 ? 0 : current + 1));
   const toggleSection = (id: string) => {
     setExpandedSections((current) => ({ ...current, [id]: !current[id] }));
   };
@@ -1008,42 +1009,75 @@ export default function Home() {
               <h2 className="text-3xl font-black uppercase text-[#0b6d36]">{title}</h2>
               <p className="mt-4 whitespace-pre-line text-lg leading-8 text-[#666666]">{text}</p>
             </div>
-            {activeFestival ? (
-              <article key={activeFestival.id} className="relative mt-10 h-[420px] animate-[ponte-fade_.35s_ease-out] overflow-hidden rounded-2xl bg-[#10281d] shadow-xl sm:h-[480px] lg:h-[560px]">
-                {activeFestival.image_url ? (
-                  <img src={activeFestival.image_url} alt={`${activeFestival.name} festival in Pontevedra`} className="absolute inset-0 h-full w-full object-cover object-center" />
-                ) : (
-                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-[#123126] via-[#537d58] to-[#d6b86c]" />
-                )}
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                {publishedFestivals.length > 1 ? (
-                  <>
-                    <button type="button" onClick={prevFestival} aria-label="Previous festival" className="absolute left-4 top-1/2 z-10 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-3xl leading-none text-white transition hover:bg-black/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">‹</button>
-                    <button type="button" onClick={nextFestival} aria-label="Next festival" className="absolute right-4 top-1/2 z-10 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-3xl leading-none text-white transition hover:bg-black/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">›</button>
-                  </>
+            {featuredFestival ? (
+              <>
+                <article className="group relative mt-10 min-h-[440px] overflow-hidden rounded-3xl bg-[#10281d] shadow-2xl sm:min-h-[500px] lg:min-h-[580px]">
+                  {featuredFestival.image_url ? (
+                    <img src={featuredFestival.image_url} alt={`${featuredFestival.name} festival in Pontevedra`} className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.025]" />
+                  ) : (
+                    <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-[#123126] via-[#537d58] to-[#d6b86c]" />
+                  )}
+                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/10" />
+                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <div className="relative flex min-h-[440px] items-end p-6 text-white sm:min-h-[500px] sm:p-10 lg:min-h-[580px] lg:p-16">
+                    <div className="max-w-3xl">
+                      <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/20 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#d5f0dc] backdrop-blur-sm">
+                        <span aria-hidden="true" className="size-2 rounded-full bg-[#b2e4c0]" />
+                        {featuredFestival.featured ? "Featured Festival" : "Discover Pontevedra"}
+                      </p>
+                      <h3 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">{featuredFestival.name}</h3>
+                      <p className="mt-5 max-w-2xl text-base leading-7 text-white/90 sm:text-lg sm:leading-8">{featuredFestival.short_description}</p>
+                      <button
+                        type="button"
+                        onClick={() => openDestinationDetails(festivalAsDestination(featuredFestival), "Festival")}
+                        className="mt-8 inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#0b6d36] px-6 text-sm font-bold text-white shadow-lg transition hover:bg-[#07552a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        aria-label={`View ${featuredFestival.name} details`}
+                      >
+                        View Details <span aria-hidden="true">&rarr;</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+
+                {otherFestivals.length > 0 ? (
+                  <div className="mt-12">
+                    <div className="mb-6 flex items-end justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#0b6d36]">More to experience</p>
+                        <h3 className="mt-2 text-2xl font-bold text-[#18352a] sm:text-3xl">Other Festivals</h3>
+                      </div>
+                      <span className="text-sm font-semibold text-[#718078]">{otherFestivals.length} celebration{otherFestivals.length === 1 ? "" : "s"}</span>
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {otherFestivals.map((festival) => (
+                        <article key={festival.id} className="group overflow-hidden rounded-2xl border border-[#e4e9e5] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                          <div className="relative h-56 overflow-hidden bg-gradient-to-br from-[#123126] via-[#537d58] to-[#d6b86c]">
+                            {festival.image_url ? <img src={festival.image_url} alt={`${festival.name} festival in Pontevedra`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> : null}
+                            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
+                          </div>
+                          <div className="p-5 sm:p-6">
+                            <h4 className="text-xl font-bold tracking-tight text-[#18352a]">{festival.name}</h4>
+                            <p className="mt-3 min-h-12 text-sm leading-6 text-[#68756d]">{festival.short_description}</p>
+                            <button
+                              type="button"
+                              onClick={() => openDestinationDetails(festivalAsDestination(festival), "Festival")}
+                              className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#0b6d36] transition hover:text-[#07552a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0b6d36]"
+                              aria-label={`View ${festival.name} details`}
+                            >
+                              View Details <span aria-hidden="true">&rarr;</span>
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
-                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 p-6 text-white sm:p-9 lg:flex-row lg:items-end lg:justify-between lg:p-12">
-                  <div className="max-w-3xl">
-                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-[#c5ebd0] sm:text-sm">Pontevedra · {activeFestival.featured ? "Featured Festival" : "Festival"}</p>
-                    <h3 className="text-3xl font-black tracking-tight sm:text-5xl lg:text-6xl">{activeFestival.name}</h3>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-white/90 sm:mt-4 sm:text-lg sm:leading-7">{activeFestival.short_description}</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-4">
-                    {publishedFestivals.length > 1 ? <span className="text-sm font-semibold text-white/85">{String(festivalIndex + 1).padStart(2, "0")} / {String(publishedFestivals.length).padStart(2, "0")}</span> : null}
-                    <button
-                      type="button"
-                      onClick={() => openDestinationDetails(festivalAsDestination(activeFestival), "Festival")}
-                      className="inline-flex min-h-12 items-center justify-center rounded-md bg-[#0b6d36] px-6 text-sm font-bold text-white shadow-lg transition hover:bg-[#07552a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7"
-                      aria-label={`Explore ${activeFestival.name} details`}
-                    >
-                      Explore Festival <span className="ml-3" aria-hidden="true">→</span>
-                    </button>
-                  </div>
-                </div>
-              </article>
+              </>
             ) : (
-              <div className="mt-10 rounded-xl border border-dashed border-[#cbd8ce] bg-white px-6 py-14 text-center">
-                <p className="text-base text-[#666666]">No published festivals are available yet.</p>
+              <div className="mt-10 rounded-3xl border border-dashed border-[#cbd8ce] bg-white px-6 py-16 text-center shadow-sm">
+                <span aria-hidden="true" className="mx-auto block size-14 rounded-full bg-[#eaf3ec]" />
+                <h3 className="mt-5 text-xl font-bold text-[#18352a]">Celebrations are coming soon</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#68756d]">There are no published festivals to explore right now. Please check back soon.</p>
               </div>
             )}
           </div>
