@@ -161,8 +161,21 @@ const infoSections = [
   ["about", "ABOUT PONTEVEDRA", "Pontevedra is a first (1st) Class municipality in the fourth (4th) congressional district, which serves as an agricultural and agro-industrial hub in Central Negros. The specific Global Positioning System (GPS) of the Municipality of Pontevedra is 122.8694°E (longitude) and 10.754°N (latitude). The town is forty kilometers (40 km) from Bacolod City where the Provincial Capitol of Negros Occidental is situated. The traveling time from Provincial Capitol to Pontevedra typically takes approximately one hour.\nFor the administrative boundaries, the municipality is bounded in the north by the Municipality of San Enrique and the City of La Carlota, in the south by Municipality of Hinigaran, in the east by the Municipality of La Castellana, and in the west by the Guimaras Strait."],
   ["history", "History of Pontevedra", "The history of Pontevedra is traced back from the Spanish colonial period, when the Spaniards arrived in Negros Island (known as Buglas), in 1565. Negros was divided into eight encomiendas, establishing the early Spanish settlements including Marayo. Due to the limited number of priests, Marayo was placed under the jurisdiction of several visitas and parishes, including Binalbagan, Tocgaguan (now E.B Magalona), Ilog, Hinigaran, and Bago.\nIn 1848, when Negros was placed under the Recollect Friars and later became a politico-military province. The sugar industry expanded rapidly. This expansion contributed to the growth of agricultural communities. Marayo became an autonomous town and was renamed Pontevedra through Spanish reducción policy which led to the consolidation of scattered settlements in 1958. The policy encountered resistance from the Mampunay communities in the uplands. Furthermore, from 1868 to 1870, Pontevedra’s religious and educational institutions developed further, including the establishment of schools and the elevation of the settlement from visita to mission and eventually to parish.\nBy the late nineteenth century, Pontevedra had developed extensive sugarcane plantations, several haciendas, and twelve iron steam mills. In 1895, approximately 2,000 hectares were designated through a Royal Order as part of the Caja de Communidad, which later became known as the Agricultural Colony of Antipolo. The Spanish rule in Pontevedra ended during the Negros uprising on November 5, 1898.\nUnder the American rule, Pontevedra was formally established as a municipality on January 31, 1901, pursuant to Philippine Commission Act No. 82. The municipality continued to develop as an agricultural community, while local government, education, and industries gradually progressed. Pontevedra was also affected by the Japanese occupation from 1941 to 1945, after which post-war reconstruction and development resumed. Among the notable developments were the establishment of St. Michael Academy in 1964 and the operation of a major lime factory in 1969, which supplied sugar centrals in Negros and nearby areas.\nA significant part of Pontevedra’s socio-economic history is the Legua Communal, which originated from the Caja de Communidad and served as a common agricultural area for parishioners. Over time, changes in land tenure resulted in portions of the land being inherited or acquired by private families. The area also became associated with agricultural enterprises, including a large coffee plantation established by the Uriarte family in 1947. Eventually, the municipal government assumed the role formerly held by the Church in administering portions of the communal lands and facilitated arrangements for occupant-lessees to acquire land through amortization with the Land Bank of the Philippines. Today, the Legua Communal encompasses the upland barangays of Burgos, Buenavista Rizal, Gomez, Mabini, and Zamora.\nOverall, Pontevedra’s development has been shaped by its colonial history, agricultural economy, particularly sugarcane production, changing land-tenure arrangements, local governance, education, industry, and the continuing development of its lowland and upland communities."],
   ["culture", "Culture & Lifestyle","Experience warm community life, local traditions, food, festivals, and heritage routes."],
-  ["festival", "Festivals", "Celebrate Kasalag Festival and other events that bring Pontevedra culture to life."],
+  ["festival", "Festivals", "Celebrate Handurayo Festival and the community performances that bring Pontevedra culture to life."],
 ];
+
+const featuredFestival: Destination = {
+  id: -1,
+  name: "Handurayo Festival",
+  location: "Pontevedra, Negros Occidental",
+  description: "A celebration of Pontevedra culture through colorful dance, music, and community performances.",
+  history: "Handurayo is Pontevedra’s festival of dances, celebrated in honor of St. Michael the Archangel. Its festivities include a street parade and community performances.",
+  images: ["https://img.youtube.com/vi/RRFsp0zowj8/maxresdefault.jpg"],
+  iframeLink: "",
+  facebookPage: "",
+  gmail: "",
+  transportations: [],
+};
 
 type NewsItem = {
   id: number;
@@ -956,7 +969,39 @@ export default function Home() {
         />
       </section>
 
-      {infoSections.map(([id, title, text]) => (
+      {infoSections.map(([id, title, text]) => id === "festival" ? (
+        <section id={id} className="border-b border-[#e8e8e8] bg-[#f7f7f7] px-5 py-16 lg:px-20" key={id}>
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-4xl text-center">
+              <h2 className="text-3xl font-black uppercase text-[#0b6d36]">{title}</h2>
+              <p className="mt-4 whitespace-pre-line text-lg leading-8 text-[#666666]">{text}</p>
+            </div>
+            <article className="relative mt-10 h-[420px] overflow-hidden rounded-2xl bg-[#10281d] shadow-xl sm:h-[480px] lg:h-[560px]">
+              <img
+                src={featuredFestival.images[0]}
+                alt="Pontevedra’s Handurayo Festival dance performance at Panaad sa Negros"
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 p-6 text-white sm:p-9 lg:flex-row lg:items-end lg:justify-between lg:p-12">
+                <div className="max-w-3xl">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-[#c5ebd0] sm:text-sm">Pontevedra · Featured Festival</p>
+                  <h3 className="text-3xl font-black tracking-tight sm:text-5xl lg:text-6xl">{featuredFestival.name}</h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-white/90 sm:mt-4 sm:text-lg sm:leading-7">{featuredFestival.description}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openDestinationDetails(featuredFestival, "Festival")}
+                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-[#0b6d36] px-6 text-sm font-bold text-white shadow-lg transition hover:bg-[#07552a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7"
+                  aria-label="Explore Handurayo Festival details"
+                >
+                  Explore Festival <span className="ml-3" aria-hidden="true">→</span>
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+      ) : (
         <section id={id} className="border-b border-[#e8e8e8] px-5 py-16 text-center lg:px-20" key={id}>
           <div className="mx-auto max-w-4xl">
             <h2 className="text-3xl font-black uppercase text-[#0b6d36]">{title}</h2>
