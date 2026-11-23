@@ -164,19 +164,6 @@ const infoSections = [
   ["festival", "Festivals", "Celebrate Handurayo Festival and the community performances that bring Pontevedra culture to life."],
 ];
 
-const featuredFestival: Destination = {
-  id: -1,
-  name: "Handurayo Festival",
-  location: "Pontevedra, Negros Occidental",
-  description: "A celebration of Pontevedra culture through colorful dance, music, and community performances.",
-  history: "Handurayo is Pontevedra’s festival of dances, celebrated in honor of St. Michael the Archangel. Its festivities include a street parade and community performances.",
-  images: ["https://img.youtube.com/vi/RRFsp0zowj8/maxresdefault.jpg"],
-  iframeLink: "",
-  facebookPage: "",
-  gmail: "",
-  transportations: [],
-};
-
 type NewsItem = {
   id: number;
   title: string;
@@ -193,6 +180,33 @@ type EventItem = {
   locationsType: string;
   locationId: number | null;
 };
+
+type PublishedFestival = {
+  id: number;
+  name: string;
+  image_url: string | null;
+  short_description: string;
+  details: string;
+  status: "published" | "draft";
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+function festivalAsDestination(festival: PublishedFestival): Destination {
+  return {
+    id: festival.id,
+    name: festival.name,
+    location: "Pontevedra, Negros Occidental",
+    description: festival.short_description,
+    history: festival.details,
+    images: festival.image_url ? [festival.image_url] : [],
+    iframeLink: "",
+    facebookPage: "",
+    gmail: "",
+    transportations: [],
+  };
+}
 
 type GalleryImage = {
   id: number;
@@ -313,11 +327,14 @@ export default function Home() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [publishedFestivals, setPublishedFestivals] = useState<PublishedFestival[]>([]);
+  const [festivalIndex, setFestivalIndex] = useState(0);
   const [galleryViewerIndex, setGalleryViewerIndex] = useState<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const place = places[placeIndex];
+  const activeFestival = publishedFestivals[festivalIndex] ?? publishedFestivals[0] ?? null;
   const visiblePlaceCount = 3;
   const skipMapResetRef = useRef(false);
   const [selectedMapCategory, setSelectedMapCategory] = useState("");
@@ -543,6 +560,19 @@ export default function Home() {
 
     fetchGallery();
 
+    async function fetchFestivals() {
+      const response = await Fetch_to(json_route.public.festivals);
+      if (response.success) {
+        const rows = response.data?.message as PublishedFestival[] | undefined;
+        if (Array.isArray(rows)) {
+          setPublishedFestivals(rows.filter((festival) => festival.status === "published"));
+          setFestivalIndex(0);
+        }
+      }
+    }
+
+    fetchFestivals();
+
   }, []);
 
   useEffect(() => {
@@ -574,6 +604,8 @@ export default function Home() {
   const showPlace = (index: number) => setPlaceIndex(index);
   const prevPlace = () => setPlaceIndex((current) => (current === 0 ? places.length - 1 : current - 1));
   const nextPlace = () => setPlaceIndex((current) => (current === places.length - 1 ? 0 : current + 1));
+  const prevFestival = () => setFestivalIndex((current) => (current === 0 ? publishedFestivals.length - 1 : current - 1));
+  const nextFestival = () => setFestivalIndex((current) => (current === publishedFestivals.length - 1 ? 0 : current + 1));
   const toggleSection = (id: string) => {
     setExpandedSections((current) => ({ ...current, [id]: !current[id] }));
   };
@@ -976,29 +1008,44 @@ export default function Home() {
               <h2 className="text-3xl font-black uppercase text-[#0b6d36]">{title}</h2>
               <p className="mt-4 whitespace-pre-line text-lg leading-8 text-[#666666]">{text}</p>
             </div>
-            <article className="relative mt-10 h-[420px] overflow-hidden rounded-2xl bg-[#10281d] shadow-xl sm:h-[480px] lg:h-[560px]">
-              <img
-                src={featuredFestival.images[0]}
-                alt="Pontevedra’s Handurayo Festival dance performance at Panaad sa Negros"
-                className="absolute inset-0 h-full w-full object-cover object-center"
-              />
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 p-6 text-white sm:p-9 lg:flex-row lg:items-end lg:justify-between lg:p-12">
-                <div className="max-w-3xl">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-[#c5ebd0] sm:text-sm">Pontevedra · Featured Festival</p>
-                  <h3 className="text-3xl font-black tracking-tight sm:text-5xl lg:text-6xl">{featuredFestival.name}</h3>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-white/90 sm:mt-4 sm:text-lg sm:leading-7">{featuredFestival.description}</p>
+            {activeFestival ? (
+              <article key={activeFestival.id} className="relative mt-10 h-[420px] animate-[ponte-fade_.35s_ease-out] overflow-hidden rounded-2xl bg-[#10281d] shadow-xl sm:h-[480px] lg:h-[560px]">
+                {activeFestival.image_url ? (
+                  <img src={activeFestival.image_url} alt={`${activeFestival.name} festival in Pontevedra`} className="absolute inset-0 h-full w-full object-cover object-center" />
+                ) : (
+                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-[#123126] via-[#537d58] to-[#d6b86c]" />
+                )}
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                {publishedFestivals.length > 1 ? (
+                  <>
+                    <button type="button" onClick={prevFestival} aria-label="Previous festival" className="absolute left-4 top-1/2 z-10 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-3xl leading-none text-white transition hover:bg-black/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">‹</button>
+                    <button type="button" onClick={nextFestival} aria-label="Next festival" className="absolute right-4 top-1/2 z-10 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-3xl leading-none text-white transition hover:bg-black/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">›</button>
+                  </>
+                ) : null}
+                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 p-6 text-white sm:p-9 lg:flex-row lg:items-end lg:justify-between lg:p-12">
+                  <div className="max-w-3xl">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-[#c5ebd0] sm:text-sm">Pontevedra · {activeFestival.featured ? "Featured Festival" : "Festival"}</p>
+                    <h3 className="text-3xl font-black tracking-tight sm:text-5xl lg:text-6xl">{activeFestival.name}</h3>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-white/90 sm:mt-4 sm:text-lg sm:leading-7">{activeFestival.short_description}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-4">
+                    {publishedFestivals.length > 1 ? <span className="text-sm font-semibold text-white/85">{String(festivalIndex + 1).padStart(2, "0")} / {String(publishedFestivals.length).padStart(2, "0")}</span> : null}
+                    <button
+                      type="button"
+                      onClick={() => openDestinationDetails(festivalAsDestination(activeFestival), "Festival")}
+                      className="inline-flex min-h-12 items-center justify-center rounded-md bg-[#0b6d36] px-6 text-sm font-bold text-white shadow-lg transition hover:bg-[#07552a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7"
+                      aria-label={`Explore ${activeFestival.name} details`}
+                    >
+                      Explore Festival <span className="ml-3" aria-hidden="true">→</span>
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => openDestinationDetails(featuredFestival, "Festival")}
-                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-[#0b6d36] px-6 text-sm font-bold text-white shadow-lg transition hover:bg-[#07552a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-7"
-                  aria-label="Explore Handurayo Festival details"
-                >
-                  Explore Festival <span className="ml-3" aria-hidden="true">→</span>
-                </button>
+              </article>
+            ) : (
+              <div className="mt-10 rounded-xl border border-dashed border-[#cbd8ce] bg-white px-6 py-14 text-center">
+                <p className="text-base text-[#666666]">No published festivals are available yet.</p>
               </div>
-            </article>
+            )}
           </div>
         </section>
       ) : (

@@ -20,6 +20,7 @@ const navigationItems = [
   { label: "Analytics", href: "/admin" },
   { label: "Gallery", href: "/admin/gallery" },
   { label: "Events", href: "/admin/events" },
+  { label: "Festivals", href: "/admin/festivals" },
   { label: "Location Request", href: "/admin/location_request" },
   { label: "Settings", href: "/admin/settings" },
 ];
