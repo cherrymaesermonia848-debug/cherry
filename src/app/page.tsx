@@ -168,6 +168,10 @@ type NewsItem = {
   id: number;
   title: string;
   text: string;
+  date: string;
+  locationsType: string;
+  locationId: number | null;
+  image: string;
 };
 
 type EventItem = {
@@ -505,6 +509,13 @@ export default function Home() {
               id: row.id as number,
               title: (row.located_in as string) ?? (row.locations_type as string) ?? "Update",
               text: (row.description as string) ?? "",
+              date: (row.date as string) ?? (row.created_at as string) ?? "",
+              locationsType: (row.locations_type as string) ?? "",
+              locationId: (() => {
+                const fkColumn = newsCategoryColumnMap[(row.locations_type as string) ?? ""];
+                return fkColumn ? (row[fkColumn] as number | null) ?? null : null;
+              })(),
+              image: typeof row.image_src === "string" ? row.image_src : Array.isArray(row.image_src) ? String(row.image_src[0] ?? "") : "",
             }))
           );
         }
@@ -1295,40 +1306,65 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="events" className="grid gap-10 px-5 py-20 lg:grid-cols-2 lg:px-20">
-        <div>
-          <h2 className="mb-8 text-3xl font-black text-[#0b6d36]">LATEST NEWS</h2>
-          <div className="space-y-5">
+      <section id="events" className="grid gap-12 px-5 py-20 lg:grid-cols-2 lg:gap-10 lg:px-20">
+        <div className="min-w-0">
+          <div className="mb-7 border-b border-[#0b6d36]/15 pb-4">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0b6d36]">Pontevedra Updates</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-[#123126] sm:text-4xl">Latest News</h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {newsItems.length > 0 ? (
-              newsItems.map((news) => (
-                <article className="flex gap-5 bg-[#f7f7f7] p-4 shadow-sm" key={news.id}>
-                  <span className="h-24 w-32 shrink-0 bg-gradient-to-br from-[#174334] to-[#83b38f]" />
-                  <div>
-                    <h4 className="text-xl font-black">{news.title}</h4>
-                    <p className="mt-2 text-[#666666]">{news.text}</p>
-                  </div>
-                </article>
-              ))
+              newsItems.map((news) => {
+                const location = allDestinationsWithCategory.find((item) => item.category === news.locationsType && item.id === news.locationId);
+                const thumbnail = news.image || location?.images[0] || "";
+                const date = news.date ? new Date(news.date) : null;
+                const displayDate = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+                return (
+                  <article className="group overflow-hidden rounded-2xl border border-[#e2ece5] bg-white shadow-[0_8px_24px_rgba(18,49,38,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(18,49,38,0.14)]" key={news.id}>
+                    {thumbnail ? <div className="h-44 overflow-hidden"><img src={thumbnail} alt={news.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /></div> : <div className="h-2 bg-[#0b6d36]" />}
+                    <div className="p-5 sm:p-6">
+                      {displayDate ? <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#0b6d36]">{displayDate}</p> : null}
+                      <h3 className="mt-2 text-xl font-extrabold leading-snug text-[#123126]">{news.title}</h3>
+                      {news.text ? <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#5f6d65]">{news.text}</p> : null}
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <p className="text-base text-[#666666]">No news posted yet.</p>
             )}
           </div>
         </div>
 
-        <div>
-          <h2 className="mb-8 text-3xl font-black text-[#0b6d36]">UPCOMING EVENTS</h2>
+        <div className="min-w-0">
+          <div className="mb-7 border-b border-[#0b6d36]/15 pb-4">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0b6d36]">Mark Your Calendar</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-[#123126] sm:text-4xl">Upcoming Events</h2>
+          </div>
           <div className="space-y-5">
             {upcomingEvents.length > 0 ? (
-              upcomingEvents.map((event) => (
-                <article className="flex items-center gap-5 border-l-8 border-[#0b6d36] bg-[#f7f7f7] p-5" key={event.id}>
-                  {event.image ? <img src={event.image} alt={event.title} className="h-20 w-28 shrink-0 rounded-md object-cover" /> : null}
-                  <h3 className="w-24 shrink-0 text-2xl font-black text-[#0b6d36]">{event.date}</h3>
-                  <div>
-                    <p className="text-lg font-semibold">{event.title}</p>
-                    <p className="mt-1 text-sm text-[#666666]">{event.text}</p>
-                  </div>
-                </article>
-              ))
+              upcomingEvents.map((event) => {
+                const location = allDestinationsWithCategory.find((item) => item.category === event.locationsType && item.id === event.locationId);
+                const thumbnail = event.image || location?.images[0] || "";
+                return (
+                  <article className="group overflow-hidden rounded-2xl border border-[#e2ece5] bg-white shadow-[0_8px_24px_rgba(18,49,38,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(18,49,38,0.14)]" key={event.id}>
+                    <div className="flex min-h-32 items-stretch">
+                      <div className="flex w-[5.25rem] shrink-0 flex-col items-center justify-center bg-[#0b6d36] px-2 text-center text-white sm:w-24">
+                        <span className="text-2xl font-black leading-none">{event.date.split(" ")[1] ?? ""}</span>
+                        <span className="mt-1 text-xs font-bold uppercase tracking-widest">{event.date.split(" ")[0] ?? "Date"}</span>
+                      </div>
+                      <div className="flex min-w-0 flex-1 items-center justify-between gap-4 p-4 sm:p-5">
+                        <div className="min-w-0">
+                          <h3 className="text-lg font-extrabold leading-snug text-[#123126]">{event.title}</h3>
+                          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[#0b6d36]">{location?.location || event.locationsType || "Pontevedra"}</p>
+                          {event.text ? <p className="mt-2 line-clamp-2 text-sm leading-5 text-[#5f6d65]">{event.text}</p> : null}
+                        </div>
+                        {thumbnail ? <img src={thumbnail} alt={event.title} className="h-20 w-20 shrink-0 rounded-xl object-cover sm:h-24 sm:w-28" /> : null}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <p className="text-base text-[#666666]">No upcoming events yet.</p>
             )}
