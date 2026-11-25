@@ -241,7 +241,7 @@ const visitorLinks = [
 const footerSocialLinks = [
   {
     label: "Facebook",
-    href: "https://www.facebook.com/municipalityofpontevedra/",
+    href: "https://facebook.com/profile.php?id=61556156150823",
     icon: "facebook",
   },
   {
@@ -250,13 +250,13 @@ const footerSocialLinks = [
     icon: "instagram",
   },
   {
-    label: "Official website",
-    href: "https://pontevedra.gov.ph",
-    icon: "website",
+    label: "Email Pontevedra Tourism Office",
+    href: "mailto:cherrymaesermonia848@gmail.com",
+    icon: "email",
   },
   {
     label: "Call Pontevedra Tourism Office",
-    href: "tel:+639123456789",
+    href: "tel:+639499386697",
     icon: "phone",
   },
 ];
@@ -282,7 +282,10 @@ function FooterSocialIcon({ name }: { name: string }) {
   if (name === "phone") {
     return <svg {...common}><path d="M21 16.5v3a1.5 1.5 0 0 1-1.6 1.5A18.8 18.8 0 0 1 11.2 18a18.5 18.5 0 0 1-5.7-5.7 18.8 18.8 0 0 1-3-8.2A1.5 1.5 0 0 1 4 2.5h3a1.5 1.5 0 0 1 1.5 1.3c.1 1 .4 1.9.7 2.8a1.5 1.5 0 0 1-.3 1.6L7.6 9.5a15 15 0 0 0 6.9 6.9l1.3-1.3a1.5 1.5 0 0 1 1.6-.3c.9.3 1.8.6 2.8.7a1.5 1.5 0 0 1 .8 1Z" /></svg>;
   }
-  return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M3.5 9h17M3.5 15h17M11 3.2a15 15 0 0 0 0 17.6M13 3.2a15 15 0 0 1 0 17.6" /></svg>;
+  if (name === "email") {
+    return <svg {...common}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>;
+  }
+  return null;
 }
 
 function FadeImage({
@@ -1719,8 +1722,8 @@ export default function Home() {
                     href={item.href}
                     key={item.label}
                     aria-label={item.label}
-                    target={item.icon === "phone" ? undefined : "_blank"}
-                    rel={item.icon === "phone" ? undefined : "noopener noreferrer"}
+                    target={item.icon === "phone" || item.icon === "email" ? undefined : "_blank"}
+                    rel={item.icon === "phone" || item.icon === "email" ? undefined : "noopener noreferrer"}
                   >
                     <FooterSocialIcon name={item.icon} />
                   </a>
@@ -1760,13 +1763,13 @@ export default function Home() {
                 <p>Municipal Tourism Office</p>
                 <p>Pontevedra, Negros Occidental, Philippines</p>
                 <p>
-                  <a className="transition hover:text-white" href="mailto:info@pontevedra.gov.ph">
-                    info@pontevedra.gov.ph
+                  <a className="transition hover:text-white" href="mailto:cherrymaesermonia848@gmail.com">
+                    cherrymaesermonia848@gmail.com
                   </a>
                 </p>
                 <p>
-                  <a className="transition hover:text-white" href="tel:+639123456789">
-                    +63 912 345 6789
+                  <a className="transition hover:text-white" href="tel:+639499386697">
+                    0949 938 6697
                   </a>
                 </p>
               </div>
