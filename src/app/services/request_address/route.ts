@@ -65,6 +65,13 @@ export async function POST(req: Request) {
     let adminEmailSent = false;
     let requesterEmailSent = false;
 
+    if (!process.env.EMAIL_USER || !process.env.APP_PASSWORD) {
+      console.error("Location request email configuration missing:", {
+        EMAIL_USER: Boolean(process.env.EMAIL_USER),
+        APP_PASSWORD: Boolean(process.env.APP_PASSWORD),
+      });
+    }
+
     // The database write is retained if an email provider is unavailable.
     try {
       const info = await transporter.sendMail({
@@ -85,10 +92,14 @@ export async function POST(req: Request) {
           created_at: data.created_at,
         }),
       });
-      adminEmailSent = info.accepted?.includes(process.env.EMAIL_USER ?? "") ?? false;
-      console.log("Admin email accepted:", info.accepted, info.rejected);
+      adminEmailSent = recipientAccepted(info.accepted, process.env.EMAIL_USER ?? "");
+      console.log("Admin notification mail result:", {
+        acceptedCount: info.accepted?.length ?? 0,
+        rejectedCount: info.rejected?.length ?? 0,
+        deliveredToConfiguredRecipient: adminEmailSent,
+      });
     } catch (mailErr) {
-      console.error("Admin email failed (request was still saved):", mailErr);
+      logMailFailure("Admin notification", mailErr);
     }
 
     try {
@@ -98,13 +109,14 @@ export async function POST(req: Request) {
         subject: "We received your location request",
         html: buildRequesterEmailHtml({ requested_by, address, description: description.trim() }),
       });
-      requesterEmailSent = info.accepted?.includes(requested_by) ?? false;
-      console.log("Requester email accepted:", info.accepted, info.rejected);
+      requesterEmailSent = recipientAccepted(info.accepted, requested_by);
+      console.log("Requester confirmation mail result:", {
+        acceptedCount: info.accepted?.length ?? 0,
+        rejectedCount: info.rejected?.length ?? 0,
+        deliveredToRequester: requesterEmailSent,
+      });
     } catch (mailErr) {
-      console.error(
-        "Requester confirmation email failed (request was still saved):",
-        mailErr
-      );
+      logMailFailure("Requester confirmation", mailErr);
     }
 
     if (!adminEmailSent || !requesterEmailSent) {
@@ -129,6 +141,26 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+function recipientAccepted(accepted: string[] | undefined, recipient: string) {
+  const expected = recipient.trim().toLowerCase();
+  return Boolean(expected) && Boolean(
+    accepted?.some((address) => address.trim().toLowerCase() === expected)
+  );
+}
+
+function logMailFailure(label: string, error: unknown) {
+  if (error && typeof error === "object") {
+    const mailError = error as { code?: unknown; command?: unknown; responseCode?: unknown };
+    console.error(`${label} email failed (request was still saved):`, {
+      code: typeof mailError.code === "string" ? mailError.code : undefined,
+      command: typeof mailError.command === "string" ? mailError.command : undefined,
+      responseCode: typeof mailError.responseCode === "number" ? mailError.responseCode : undefined,
+    });
+    return;
+  }
+  console.error(`${label} email failed (request was still saved)`);
 }
 
 function buildAdminEmailHtml({
