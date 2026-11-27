@@ -15,13 +15,20 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { requested_by, address } = body ?? {};
+    const { requested_by, address, description } = body ?? {};
 
-    if (!requested_by || !address) {
+    if (
+      typeof requested_by !== "string" ||
+      typeof address !== "string" ||
+      typeof description !== "string" ||
+      !requested_by.trim() ||
+      !address.trim() ||
+      !description.trim()
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "requested_by and address are required",
+          error: "Email, address, and description are required",
         },
         { status: 400 }
       );
@@ -40,7 +47,7 @@ export async function POST(req: Request) {
     // 1. Insert the request into Supabase
     const { data, error } = await supabase
       .from("locations_resquest")
-      .insert([{ requested_by, address, status: "pending" }])
+      .insert([{ requested_by, address, description: description.trim(), status: "pending" }])
       .select()
       .single();
 
@@ -55,8 +62,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2a. Notify the admin (fire-and-forget-safe: failure here doesn't roll
-    //     back the DB write — the request is already saved)
+    let adminEmailSent = false;
+    let requesterEmailSent = false;
+
+    // The database write is retained if an email provider is unavailable.
     try {
       const info = await transporter.sendMail({
         from: `"Pontevedra Tourism" <${process.env.EMAIL_USER}>`,
@@ -72,27 +81,40 @@ export async function POST(req: Request) {
           id: data.id,
           requested_by,
           address,
+          description: description.trim(),
           created_at: data.created_at,
         }),
       });
+      adminEmailSent = info.accepted?.includes(process.env.EMAIL_USER ?? "") ?? false;
       console.log("Admin email accepted:", info.accepted, info.rejected);
     } catch (mailErr) {
       console.error("Admin email failed (request was still saved):", mailErr);
     }
 
-    // 2b. Confirm receipt to the requester (requested_by is their email)
     try {
       const info = await transporter.sendMail({
         from: `"Pontevedra Tourism" <${process.env.EMAIL_USER}>`,
         to: requested_by,
         subject: "We received your location request",
-        html: buildRequesterEmailHtml({ requested_by, address }),
+        html: buildRequesterEmailHtml({ requested_by, address, description: description.trim() }),
       });
+      requesterEmailSent = info.accepted?.includes(requested_by) ?? false;
       console.log("Requester email accepted:", info.accepted, info.rejected);
     } catch (mailErr) {
       console.error(
         "Requester confirmation email failed (request was still saved):",
         mailErr
+      );
+    }
+
+    if (!adminEmailSent || !requesterEmailSent) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Your request was saved, but an email notification could not be sent. Please contact the site administrator.",
+          data,
+        },
+        { status: 502 }
       );
     }
 
@@ -113,11 +135,13 @@ function buildAdminEmailHtml({
   id,
   requested_by,
   address,
+  description,
   created_at,
 }: {
   id: number;
   requested_by: string;
   address: string;
+  description: string;
   created_at: string;
 }) {
   const formattedDate = new Date(created_at).toLocaleString("en-PH", {
@@ -178,6 +202,14 @@ function buildAdminEmailHtml({
                   </tr>
                   <tr>
                     <td style="padding:14px 18px;background-color:#f9fafb;color:#6b7280;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid #e5e7eb;">
+                      Description / Request Details
+                    </td>
+                    <td style="padding:14px 18px;color:#111827;font-size:14px;line-height:1.6;white-space:pre-wrap;border-bottom:1px solid #e5e7eb;">
+                      ${escapeHtml(description)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px 18px;background-color:#f9fafb;color:#6b7280;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid #e5e7eb;">
                       Status
                     </td>
                     <td style="padding:14px 18px;border-bottom:1px solid #e5e7eb;">
@@ -223,9 +255,11 @@ function buildAdminEmailHtml({
 function buildRequesterEmailHtml({
   requested_by,
   address,
+  description,
 }: {
   requested_by: string;
   address: string;
+  description: string;
 }) {
   /* eslint-disable no-secrets/no-secrets -- inline CSS in the email template, not a secret */
   return `
@@ -259,6 +293,13 @@ function buildRequesterEmailHtml({
               <td style="padding:32px;">
                 <p style="margin:0 0 16px 0;color:#374151;font-size:14px;line-height:1.6;">
                   Hi ${escapeHtml(requested_by)},
+                </p>
+                <div style="margin:0 0 20px 0;padding:16px;background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+                  <p style="margin:0 0 8px 0;color:#6b7280;font-size:12px;font-weight:600;text-transform:uppercase;">Your description</p>
+                  <p style="margin:0;color:#111827;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(description)}</p>
+                </div>
+                <p style="margin:0 0 20px 0;color:#374151;font-size:14px;line-height:1.6;">
+                  Your request has been forwarded to the administrator for review. It must be approved before the suggested location is added to the website map.
                 </p>
                 <p style="margin:0 0 20px 0;color:#374151;font-size:14px;line-height:1.6;">
                   We've received your request to add <strong>${escapeHtml(

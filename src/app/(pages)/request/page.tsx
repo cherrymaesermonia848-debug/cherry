@@ -7,26 +7,39 @@ import { Fetch_to } from "@/utilities";
 export default function Sign_up_page() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
+  const [submissionError, setSubmissionError] = useState(false);
   const [disabled_button, setDisabled_button] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setDisabled_button(true);
+    setMessage("");
+    setSubmissionError(false);
 
-    const response = await Fetch_to(api_route.request_address, { requested_by: email, address: address });
+    try {
+      const response = await Fetch_to(api_route.request_address, {
+        requested_by: email,
+        address,
+        description,
+      });
 
-    if (response.success) {
-      // TODO: hook this up later
-      setMessage(response.message);
-      setAddress("");
-      setEmail("");
-    } else {
-      setMessage(response.message);
+      if (response.success) {
+        setMessage("Your location request was received. A confirmation email has been sent.");
+        setAddress("");
+        setEmail("");
+        setDescription("");
+      } else {
+        setSubmissionError(true);
+        setMessage(response.message || "We couldn't submit your request. Please try again.");
+      }
+    } catch {
+      setSubmissionError(true);
+      setMessage("We couldn't submit your request. Please try again.");
+    } finally {
+      setDisabled_button(false);
     }
-
-    setDisabled_button(false);
-    
   };
 
   return (
@@ -46,7 +59,7 @@ export default function Sign_up_page() {
         </div>
 
         {message ? (
-          <div className="rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-800">
+          <div role="status" className={`rounded-lg border px-4 py-3 text-sm font-semibold ${submissionError ? "border-red-200 bg-red-50 text-red-800" : "border-teal-200 bg-teal-50 text-teal-800"}`}>
             {message}
           </div>
         ) : null}
@@ -75,6 +88,18 @@ export default function Sign_up_page() {
               onChange={(event) => setAddress(event.target.value)}
               className="h-11 rounded-md border border-zinc-300 px-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
               placeholder="Barangay or full address"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+            Description / Request Details
+            <textarea
+              required
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              className="min-h-32 resize-y rounded-md border border-zinc-300 px-3 py-3 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              placeholder="Enter your request or additional details here..."
+              rows={5}
             />
           </label>
 
