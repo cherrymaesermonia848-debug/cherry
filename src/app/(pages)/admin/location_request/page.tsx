@@ -109,7 +109,7 @@ export default function ManageUserPage() {
             </div>
           </div>
 
-          <div className="scrollbar-hidden overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] border-collapse text-left text-sm">
               <thead className="bg-zinc-950 text-xs font-semibold uppercase tracking-wide text-white">
                 <tr>
@@ -140,7 +140,7 @@ export default function ManageUserPage() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => setViewingRequest(request)}
@@ -232,6 +232,17 @@ export default function ManageUserPage() {
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Requested Location / Address</h3>
                 <p className="mt-1 break-words text-sm text-zinc-950">{viewingRequest.address}</p>
               </div>
+              {viewingRequest.created_at ? (
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Date Submitted</h3>
+                  <p className="mt-1 text-sm text-zinc-950">
+                    {new Date(viewingRequest.created_at).toLocaleString("en-PH", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </div>
+              ) : null}
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Description / Request Details</h3>
                 <p className="mt-1 max-h-[45vh] overflow-y-auto whitespace-pre-wrap break-words rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-950">
