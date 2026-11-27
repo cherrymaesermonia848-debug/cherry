@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { SideBar } from "@/components/admin";
 
-// Matches the actual `locations_resquest` table: id, requested_by (email),
-// address, status, created_at. There is no separate name/location-type field.
+// Matches the `locations_resquest` table, including the saved description.
 type LocationRequestRecord = {
   id: number;
   requested_by: string;
   address: string;
+  description?: string | null;
   status: "pending" | "accepted" | "declined";
   created_at: string;
 };
@@ -26,6 +26,7 @@ export default function ManageUserPage() {
   const [locationRequests, setLocationRequests] = useState<LocationRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [viewingRequest, setViewingRequest] = useState<LocationRequestRecord | null>(null);
 
   useEffect(() => {
     async function Verify() {
@@ -142,6 +143,13 @@ export default function ManageUserPage() {
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
+                          onClick={() => setViewingRequest(request)}
+                          className="h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => updateRequestStatus(request, "accepted")}
                           className="h-9 rounded-md bg-teal-700 px-3 text-xs font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={request.status === "accepted" || updatingId === request.id}
@@ -185,6 +193,55 @@ export default function ManageUserPage() {
           ) : null}
         </div>
       </section>
+
+      {viewingRequest ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 p-4"
+          onClick={() => setViewingRequest(null)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="location-request-details-title"
+            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 px-5 py-4 sm:px-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+                  Request #{viewingRequest.id}
+                </p>
+                <h2 id="location-request-details-title" className="mt-1 text-lg font-semibold text-zinc-950">
+                  Request Details
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingRequest(null)}
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+              >
+                Close
+              </button>
+            </div>
+            <div className="space-y-5 px-5 py-5 sm:px-6">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Requester&apos;s Email</h3>
+                <p className="mt-1 break-words text-sm text-zinc-950">{viewingRequest.requested_by}</p>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Requested Location / Address</h3>
+                <p className="mt-1 break-words text-sm text-zinc-950">{viewingRequest.address}</p>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Description / Request Details</h3>
+                <p className="mt-1 max-h-[45vh] overflow-y-auto whitespace-pre-wrap break-words rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-950">
+                  {viewingRequest.description?.trim() || "No description provided."}
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
