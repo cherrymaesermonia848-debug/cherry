@@ -323,7 +323,6 @@ export default function Home() {
   const [selectedDestination, setSelectedDestination] = useState<SelectedDestination | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedMenuChoice, setSelectedMenuChoice] = useState<string | null>(null);
-  const [selectedMenuLabel, setSelectedMenuLabel] = useState<string | null>(null);
   const [isHeaderCompact, setIsHeaderCompact] = useState(false);
   const [beachDestinations, setBeachDestinations] = useState<Destination[]>([]);
   const [barangayDestinations, setBarangayDestinations] = useState<Destination[]>([]);
@@ -812,10 +811,10 @@ export default function Home() {
       <header className="sticky top-0 z-50 bg-[#0a7137] text-white shadow-sm">
         {/* Top nav bar - white, holds the menu, search, and mobile toggle */}
         <div className="border-b border-white/15 px-5 lg:px-10 xl:px-20">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 py-1.5">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 py-2 lg:flex-nowrap lg:gap-4 lg:py-1.5">
             <a
               href="#home"
-              className="text-base font-black uppercase tracking-wide text-white"
+              className="min-w-0 flex-1 truncate text-xs font-black uppercase tracking-wide text-white sm:text-sm lg:flex-none lg:text-base"
               aria-label="Home"
             >
               TOURISM SMARTHERITAGE PONTEVEDRA
@@ -824,9 +823,10 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen((currentValue) => !currentValue)}
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-white/30 text-white transition hover:bg-white/10 lg:hidden"
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-white/30 text-white transition hover:bg-white/10 focus-visible:outline-white lg:hidden"
               aria-label="Toggle main navigation"
               aria-expanded={isMobileMenuOpen}
+              aria-controls="primary-navigation"
             >
               <span className="flex flex-col gap-1.5">
                 <span className="block h-0.5 w-5 rounded bg-current" />
@@ -838,32 +838,32 @@ export default function Home() {
             <div
               className={`${
                 isMobileMenuOpen ? "flex" : "hidden"
-              } w-full flex-col gap-4 lg:flex lg:w-auto lg:flex-row lg:items-center lg:gap-6`}
+              } order-3 w-full min-w-0 flex-col gap-3 border-t border-white/15 pt-3 lg:order-none lg:flex lg:w-auto lg:flex-row lg:items-center lg:gap-6 lg:border-0 lg:pt-0`}
+              id="primary-navigation"
             >
               <ul className="flex flex-col gap-1 text-[15px] text-white lg:flex-row lg:items-center lg:gap-1">
                 {menuItems.map((item) => (
                   <li
                     className="group relative"
                     key={item.label}
-                    onMouseEnter={() => setSelectedMenuLabel(null)}
                   >
                     <a
-                      className="flex h-9 items-center justify-between gap-2 rounded-sm px-3 font-semibold text-white transition hover:bg-white/10 hover:text-white lg:justify-start lg:px-2"
+                      className="flex min-h-11 items-center justify-between gap-2 rounded-sm px-3 font-semibold text-white transition hover:bg-white/10 hover:text-white lg:min-h-9 lg:justify-start lg:px-2"
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span className="whitespace-nowrap">{item.label}</span>
                       <span className="text-[10px] leading-none text-[#0b6d36]">▾</span>
                     </a>
-                    <ul className={`${selectedMenuLabel === item.label ? "hidden" : "grid border-l-4 border-[#0b6d36] bg-[#f7fbf8] py-1 pl-2 lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:bg-white lg:pl-0 lg:shadow-xl lg:transition-opacity lg:invisible lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100"}`}>
+                    <ul className="grid border-l-4 border-white/30 bg-white/10 py-1 pl-2 lg:absolute lg:left-0 lg:top-full lg:z-40 lg:w-56 lg:border-l-0 lg:border-t-4 lg:border-[#0b6d36] lg:bg-white lg:pl-0 lg:shadow-xl lg:transition-opacity lg:invisible lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100 lg:group-focus-within:visible lg:group-focus-within:opacity-100">
                       {item.links.map(([label, href]) => (
                         <li key={label}>
                           <a
-                            className={`block px-4 py-2 text-sm hover:bg-[#f2f6f3] hover:text-[#0b6d36] lg:py-3 ${selectedMenuChoice === `${item.label}:${label}` ? "bg-[#edf4ef] font-semibold text-[#0b6d36]" : "text-[#0b6d36]"}`}
+                            className={`block min-h-11 px-4 py-3 text-sm text-white hover:bg-white/15 focus-visible:outline-white lg:min-h-0 lg:py-3 lg:text-[#0b6d36] lg:hover:bg-[#f2f6f3] ${selectedMenuChoice === `${item.label}:${label}` ? "font-semibold underline" : ""}`}
                             href={href}
                             onClick={() => {
                               setSelectedMenuChoice(`${item.label}:${label}`);
-                              setSelectedMenuLabel(item.label);
+                              setIsMobileMenuOpen(false);
                             }}
                           >
                             {label}
@@ -983,11 +983,11 @@ export default function Home() {
             </a>
 
             <div className="text-left text-sm sm:text-right sm:text-base">
-              <p className="hidden font-bold sm:block sm:text-xs">
+              <p className="font-bold text-[11px] sm:text-xs">
                 Philippine Standard Time:
               </p>
               <p
-                className={`mt-1 font-semibold text-[#d8f3df] transition-all duration-300 ${
+                className={`mt-1 max-w-full break-words text-left text-[11px] font-semibold leading-4 text-[#d8f3df] transition-all duration-300 sm:text-right sm:text-sm sm:leading-normal ${
                   isHeaderCompact ? "text-xs sm:text-sm" : ""
                 }`}
               >
@@ -997,7 +997,8 @@ export default function Home() {
                       year: "numeric",
                       month: "long",
                       day: "2-digit",
-                    })}, ${now.toLocaleTimeString()}`
+                      timeZone: "Asia/Manila",
+                    })}, ${now.toLocaleTimeString("en-PH", { timeZone: "Asia/Manila" })}`
                   : "Loading date | Loading time"}
               </p>
             </div>
